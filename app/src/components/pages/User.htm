@@ -1,0 +1,23 @@
+<page-user mode="open" extends="main">
+  <h2>{{  $mixins.glossary[$params.category].slice(0, -1) }}</h2>
+  ID: {{ user.id }}<br>
+  Имя: {{ user.name }}<br>
+  Возраст: {{ user.age }}
+
+  <script>
+    exports = {
+      async data() {
+        
+        const user = await this.$mixins.fetch(`/workers/${this.$params.category}/${this.$params.id}`)
+
+        // const DB = this.$mixins.DB
+        // const id = this.$params.id
+        // const user = DB.find(user => user.id == id)
+
+        return {
+          user
+        }
+      }
+    }
+  </script>
+</page-user>

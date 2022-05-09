@@ -1,0 +1,8 @@
+{"id":1,"name":"Иван","age":28,"category":"managers","_id":"3RH5QS5kPmx0sjXj"}
+{"id":7,"name":"Анатолий","age":31,"category":"managers","_id":"4Iy46DCucIG2sXAt"}
+{"id":4,"name":"Олег","age":36,"category":"managers","_id":"8ba6tqoWJvVb9h6Q"}
+{"id":3,"name":"Максим","age":41,"category":"designers","_id":"CkV4EMSVboevA0mb"}
+{"id":6,"name":"Наталья","age":24,"category":"managers","_id":"X8aR8xRjpQBydX8C"}
+{"id":5,"name":"Александр","age":26,"category":"designers","_id":"o1xmiHa2Camli6UY"}
+{"id":2,"name":"Ольга","age":32,"category":"designers","_id":"rJvXsEwHWR0Ii3LD"}
+{"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}
