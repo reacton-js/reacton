@@ -32,7 +32,7 @@ Reacton - это JavaScript-библиотека для создания при�
 
 1. [Быстрый старт](#quick-start)
 2. [Объект компонента](#component-object)
-3. ~~[Обновление компонента](#component-update)~~
+3. [Встроенные компоненты](#embedded-components)
 4. ~~[События компонента](#component-events)~~
 5. ~~[Циклы компонента](#component-cycles)~~
 6. ~~[Состояние компонента](#component-state)~~
@@ -276,6 +276,57 @@ async data() {
     message: await new Promise(ready => setTimeout(() => ready('Reacton'), 1000))
   }
 }
+```
+
+<br>
+<br>
+<h2 id="embedded-components"># Встроенные компоненты</h2>
+
+<br>
+
+Создавать HTML-разметку компонента в виде текста, не всегда бывает удобно. Гораздо легче сделать это в HTML-элементе, таком, например, как элемент Template. Внесите изменения в файл *index.html*, как показано ниже:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+
+  <!-- монтировать компонент Hello в приложение -->
+  <app-hello id="hello"></app-hello>
+
+  <!-- загрузить библиотеку Reacton -->
+  <script src="reacton.js"></script>
+
+  <!-- создать встроенный компонент Hello -->
+  <template name="app-hello">
+    <h1>Привет, {{ message }}!</h1>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            message: 'Reacton'
+          }
+        }
+      }
+    </script>
+  </template>
+
+  <script>
+    // выбрать встроенный компонент Hello
+    const Hello = document.querySelector('template[name="app-hello"]')
+
+    // подключить компонент Hello к библиотеке Reacton
+    Reacton(Hello)
+  </script>
+</body>
+</html>
 ```
 
 <br>
