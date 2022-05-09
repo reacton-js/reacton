@@ -112,7 +112,6 @@ hello.$data.message = 'Мир'
 
 > <h1>Привет, Мир!</h1>
 
-<hr>
 <br>
 <br>
 <h2 id="component-object">Объект компонента</h2>
@@ -279,6 +278,5 @@ async data() {
 }
 ```
 
-<hr>
 <br>
 <br>
