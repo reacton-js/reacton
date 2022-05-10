@@ -68,7 +68,6 @@ Reacton позволяет создавать компоненты нескол�
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <app-hello></app-hello>
 
@@ -303,7 +302,6 @@ async data() {
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <app-hello id="hello"></app-hello>
 
@@ -349,7 +347,6 @@ async data() {
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <header is="app-hello"></header>
 
@@ -438,7 +435,6 @@ Reacton поддерживает два типа внешних компонен
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <app-hello></app-hello>
 
@@ -512,7 +508,6 @@ lite-server
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <app-hello></app-hello>
   
@@ -611,7 +606,6 @@ lite-server
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <app-hello></app-hello>
 
@@ -662,7 +656,6 @@ lite-server
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <header is="app-hello"></header>
 
@@ -710,7 +703,6 @@ lite-server
   <title>Reacton</title>
 </head>
 <body>
-
   <!-- монтировать компонент Hello в приложение -->
   <app-hello id="hello"></app-hello>
 
