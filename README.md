@@ -168,7 +168,7 @@ html: `
 `
 ```
 
-Разметка передаётся в это свойсво в виде строки. При создании многострочной разметки используются обратные кавычки, но для примера выше, можно было бы использовать и простые одинарные или двойные:
+Разметка передаётся в это свойство в виде строки. При создании многострочной разметки используются обратные кавычки, но для примера выше, можно было бы использовать и простые одинарные или двойные:
 
 ```js
 html: "<h1>Привет, {{ message }}!</h1>"
@@ -308,6 +308,7 @@ async data() {
     <h1>Привет, {{ message }}!</h1>
 
     <script>
+      // экспортировать объект компонента
       exports = {
         data() {
           return {
@@ -327,6 +328,83 @@ async data() {
   </script>
 </body>
 </html>
+```
+
+Все рассмотренные выше свойства объекта компонента, кроме методов, можно передавать через атрибуты элемента Template. В качестве примера, модифицируем этот компонент и добавим ему Теневой DOM с открытым уровнем инкапсуляции:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+
+  <!-- монтировать компонент Hello в приложение -->
+  <header is="app-hello"></header>
+
+  <!-- загрузить библиотеку Reacton -->
+  <script src="reacton.js"></script>
+
+  <!-- создать встроенный модифицированный компонент Hello -->
+  <template name="app-hello" extends="header" mode="open">
+    <h1>Привет, {{ message }}!</h1>
+
+    <script>
+      // экспортировать объект компонента
+      exports = {
+        data() {
+          return {
+            message: 'Reacton'
+          }
+        }
+      }
+    </script>
+  </template>
+
+  <script>
+    // выбрать встроенный компонент Hello
+    const Hello = document.querySelector('template[name="app-hello"]')
+
+    // подключить компонент Hello к библиотеке Reacton
+    Reacton(Hello)
+  </script>
+</body>
+</html>
+```
+
+Однако, свойства, которые экспортируются через объект **exports**, переопределяют свойства задаваемые в атрибутах элемента Template. В примере ниже, мы изменили свойство **name**, которое отвечает за наименование компонента:
+
+```js
+// экспортировать объект компонента
+exports = {
+  name: 'no-hello',
+  data() {
+    return {
+      message: 'Reacton'
+    }
+  }
+}
+```
+
+И поэтому данный компонент не будет отображаться в браузере, когда мы попытаемся примонтировать компонент Hello:
+
+```html
+<!-- монтировать компонент Hello в приложение -->
+<header is="app-hello"></header>
+```
+
+Последнее, на что стоит обратить внимание, что для передачи встроенного компонента библиотеке Reacton, его необходимо прежде выбрать любым удобным способом, например, используя стандартный метод [querySelector](https://learn.javascript.ru/searching-elements-dom#querySelector) объекта **document**, как показано ниже:
+
+```js
+// выбрать встроенный компонент Hello
+const Hello = document.querySelector('template[name="app-hello"]')
+
+// подключить компонент Hello к библиотеке Reacton
+Reacton(Hello)
 ```
 
 <br>
