@@ -1,7 +1,9 @@
 ![rigl](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
 [github](https://github.com/reacton-js/reacton) | 
-[npmjs](https://www.npmjs.com/package/reacton-js)
+[npmjs](https://www.npmjs.com/package/reacton-js) | 
+[script](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.js) | 
+[module](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.mjs)
 
 <br>
 
@@ -1147,7 +1149,29 @@ hello.$$('h1')
 </app-hello>
 ```
 
-Ключевое слово **this** здесь является обязательным, поскольку у нас не существует пользовательского свойства **attributes**, являющегося объектом, к свойствам которого мы пытаемся получить доступ. [Прокси](https://learn.javascript.ru/proxy), в контексте которого исполняется функция отвечающая за обработку выражений, сначала проверяет свойство записанное с использованием ключевого слова **this** в объекте данных компонента, и если там его не находит, то возвращает значение данного свойства самого компонента.
+Ключевое слово **this** здесь является обязательным и его отсутствие приведёт к ошибке, поскольку у нас не существует пользовательского свойства **attributes**, являющегося объектом, к свойствам которого мы пытаемся получить доступ:
+
+```html
+<app-hello>
+  <h1>Привет, {{ message }}!</h1>
+
+  <!-- Ошибка! Не существует пользовательского свойства attributes  -->
+  <p>ID: {{ attributes.id.value }}</p>
+
+  <script>
+    exports = {
+      name: 'app-hello',
+      data() {
+        return {
+          message: 'Reacton'
+        }
+      }
+    }
+  </script>
+</app-hello>
+```
+
+[Прокси](https://learn.javascript.ru/proxy), в контексте которого исполняется функция отвечающая за обработку выражений, сначала проверяет свойство записанное с использованием ключевого слова **this** в объекте данных компонента, и если там его не находит, то возвращает значение данного свойства самого компонента.
 
 <br>
 <br>
