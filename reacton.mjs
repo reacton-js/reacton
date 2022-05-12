@@ -5,7 +5,7 @@ const customNames = new Set()
 const STORE = new WeakMap()
 const GFunction = Function('return function*(){}')().constructor
 const regFile = /\.html?$/
-const propNames = '$,$$,$data,$mixins,$params,$event,$when,$router'
+const propNames = '$data,$root,$host,$,$$,$when,$mixins,$params,$event,$router'
 const hook = {
   get(target, key, receiver) {
     return target.$data.hasOwnProperty(key) ? Reflect.get(target.$data, key, receiver) : Reflect.get(target, key)
@@ -41,6 +41,7 @@ export default window.Reacton = async function Reacton(...args) {
       constructor() {
         super()
         this.$data = {}
+        this.$host = this
         STORE.set(this, {})
         STORE.get(this).nodes = []
         STORE.get(this).values = new WeakMap()
