@@ -21,3 +21,9 @@ npm run build
 ```
 node server
 ```
+
+## bot
+
+```
+node server bot
+```

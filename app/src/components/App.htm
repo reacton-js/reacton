@@ -1,6 +1,6 @@
 <app-reacton mode="open" extends="body">
   <header is="app-header"></header>
-  <main id="main" $view="view"></main>
+  <main id="main" $params="category, id" $view="view"></main>
   <footer is="app-footer"></footer>
 
   <style>
@@ -21,13 +21,12 @@
     exports = {
       data() {
         return {
-          view: ''
+          view: '',
+          category: '',
+          id: ''
         }
       },
       connected() {
-        const main = this.$('#main')
-        main.$params = {}
-
         this.$router(this, {
           '/': ()=> {
             this.$data.view = 'page-home'
@@ -37,12 +36,12 @@
           },
           '/workers/:category/:id?': event => {
             if (event.params.id) {
-              main.$params.category = event.params.category
-              main.$params.id = event.params.id
+              this.$data.category = event.params.category
+              this.$data.id = event.params.id
               this.$data.view = 'page-user'
             }
             else {
-              main.$params.category = event.params.category
+              this.$data.category = event.params.category
               this.$data.view = 'page-list'
             }
           }

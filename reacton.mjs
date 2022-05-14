@@ -1,8 +1,9 @@
 // ---------------------------------- Reacton ----------------------------------
 
 const arrayObjects = []
-const customNames = new Set()
 const STORE = new WeakMap()
+const storeParams = new WeakMap()
+const customNames = new Set()
 const GFunction = Function('return function*(){}')().constructor
 const regFile = /\.html?$/
 const propNames = '$data,$root,$host,$,$$,$when,$mixins,$params,$event,$router'
@@ -43,13 +44,20 @@ export default window.Reacton = async function Reacton(...args) {
         this.$data = {}
         this.$host = this
         STORE.set(this, {})
-        STORE.get(this).nodes = []
         STORE.get(this).values = new WeakMap()
         STORE.get(this).depends = new WeakMap()
         STORE.get(this).handlers = new WeakMap()
         STORE.get(this).listeners = new WeakMap()
-        STORE.get(this).callbacks = new WeakMap()
-        
+        if (this.dataset.Params) {
+          const params = storeParams.get(this.attributes['data--params'])
+          this.$params = params.proxy
+          STORE.get(this).nodes = params.nodes
+          STORE.get(this).callbacks = params.callbacks
+        }
+        else {
+          STORE.get(this).nodes = []
+          STORE.get(this).callbacks = new WeakMap()
+        }
         if (Reacton.hasOwnProperty('mixins')) {
           this.$mixins = Reacton.mixins
         }
@@ -264,9 +272,6 @@ function handler(node, frag) {
       for (var i = 0; i < parent.attributes.length; i++) {
         element.setAttributeNode(parent.removeAttributeNode(parent.attributes[i--]))
       }
-      if (parent.$params) {
-        element.$params = parent.$params
-      }
       parent.replaceWith(element)
     }
   }
@@ -327,6 +332,24 @@ function react(node, frag, vars) {
       const listener = STORE.get(this).iterator.next(`event=>${node.nodeValue}`).value
       node.ownerElement.addEventListener(name, listener, opts)
     }
+  }
+  else if (node.nodeName.startsWith('data--params')) {
+    const setNames = new Set()
+    for (let name of node.value.split(',')) {
+      setNames.add(name.trim())
+    }
+    storeParams.set(node, {
+      proxy: new Proxy(this.$data, {
+        get (target, key, receiver) {
+          return setNames.has(key) ? Reflect.get(target, key, receiver) : undefined
+        },
+        set (target, key, value, receiver) {
+          return setNames.has(key) ? Reflect.set(target, key, value, receiver) : false
+        }
+      }),
+      nodes: STORE.get(this).nodes,
+      callbacks: STORE.get(this).callbacks
+    })
   }
   else if (node.nodeName.startsWith('data--')) {
     setCallback.call(this, node, frag, node.nodeValue)

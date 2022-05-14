@@ -34,11 +34,12 @@ app.post('/workers/\\w+/:id', (req, res) => {
 })
 
 app.use(async (req, res) => {
-  // const userAgent = 'Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)'
-  // const userAgent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-  const userAgent = req.get('User-Agent')
+
+  const userAgent = process.argv[2] === 'bot' ? 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+    : req.get('User-Agent')
   
   if (regBots.test(userAgent)) {
+    
     const fullURL = req.protocol + "://" + req.hostname + `${port ? `:${port}` : ''}` + req.originalUrl
 
     const body = await readFile(__dirname + '/views/partials/body.hbs').then(async data => {
