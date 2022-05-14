@@ -826,8 +826,8 @@ hello.$data.message = 'Мир'
   <h1>Привет, {{ message }}!</h1>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton'
@@ -859,8 +859,8 @@ setTimeout(() => this.$data.message = 'Мир', 1000)
   <h1 @click="message = 'Мир'">Привет, {{ message }}!</h1>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton'
@@ -892,8 +892,8 @@ setTimeout(() => this.$data.message = 'Мир', 1000)
   <h1>Привет, {{ message }}!</h1>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       // добавить компоненту открытый Теневой DOM
       mode: 'open',
       data() {
@@ -957,6 +957,7 @@ hello.$$('h1')
   <p>Пока...</p>
 
   <script>
+    // экспортировать объект компонента
     exports = {
       connected() {
         // вывести в консоль сообщение, после определения компонента Hello
@@ -1002,8 +1003,8 @@ hello.$$('h1')
   </style>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton'
@@ -1028,8 +1029,8 @@ hello.$$('h1')
   </style>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton',
@@ -1057,8 +1058,8 @@ hello.$$('h1')
   </style>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton',
@@ -1090,8 +1091,8 @@ hello.$$('h1')
   </style>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton',
@@ -1122,8 +1123,8 @@ hello.$$('h1')
   </style>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton',
@@ -1146,8 +1147,8 @@ hello.$$('h1')
   <p>ID: {{ this.attributes.id.value }}</p>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton'
@@ -1168,8 +1169,8 @@ hello.$$('h1')
   <p>ID: {{ attributes.id.value }}</p>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton'
@@ -1190,8 +1191,8 @@ hello.$$('h1')
   <p>ID: {{ this.id }}</p>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton'
@@ -1212,8 +1213,8 @@ hello.$$('h1')
   <p>ID: {{ this.id }}</p>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton',
@@ -1238,8 +1239,8 @@ hello.$$('h1')
   <p>ID: {{ $host.id }}</p>
 
   <script>
+    // экспортировать объект компонента
     exports = {
-      name: 'app-hello',
       data() {
         return {
           message: 'Reacton',
