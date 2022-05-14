@@ -1,6 +1,7 @@
 ![rigl](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
 [github](https://github.com/reacton-js/reacton) | 
+[gitflic](https://gitflic.ru/project/reacton/reacton-js) | 
 [npmjs](https://www.npmjs.com/package/reacton-js) | 
 [script](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.js) | 
 [module](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.mjs)
@@ -1452,7 +1453,7 @@ element.dataset.Params
 </app-bye>
 ```
 
-Cпециальное свойство **$params** является [прокси](https://learn.javascript.ru/proxy)-объектом. Доступ к значениям пользовательских свойст родительского компонента, осуществляется через точетную нотаци.
+Cпециальное свойство **$params** является [прокси](https://learn.javascript.ru/proxy)-объектом. Доступ к значениям пользовательских свойст родительского компонента, осуществляется через точетную нотацию.
 
 
 На экране мы увидим уже знакомое нам сообщение:
