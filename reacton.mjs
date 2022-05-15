@@ -43,21 +43,20 @@ export default window.Reacton = async function Reacton(...args) {
         super()
         this.$data = {}
         this.$host = this
-        STORE.set(this, {})
-        const __store__ = STORE.get(this)
-        __store__.values = new WeakMap()
-        __store__.depends = new WeakMap()
-        __store__.handlers = new WeakMap()
-        __store__.listeners = new WeakMap()
+        const store = {}
+        store.values = new WeakMap()
+        store.depends = new WeakMap()
+        store.handlers = new WeakMap()
+        store.listeners = new WeakMap()
         if (this.dataset.Params) {
           const params = storeParams.get(this.attributes['data--params'])
           this.$params = params.proxy
-          __store__.nodes = params.nodes
-          __store__.callbacks = params.callbacks
+          store.nodes = params.nodes
+          store.callbacks = params.callbacks
         }
         else {
-          __store__.nodes = []
-          __store__.callbacks = new WeakMap()
+          store.nodes = []
+          store.callbacks = new WeakMap()
         }
         if (Reacton.hasOwnProperty('mixins')) {
           this.$mixins = Reacton.mixins
@@ -66,11 +65,12 @@ export default window.Reacton = async function Reacton(...args) {
           this.dataset[key] = dataset[key]
         }
         if (typeof before === 'function') {
-          __store__.before = before
+          store.before = before
         }
         if (typeof after === 'function') {
-          __store__.after = after
+          store.after = after
         }
+        STORE.set(this, store)
         customNames.add(name.toUpperCase())
       }
 
