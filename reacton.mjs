@@ -134,7 +134,7 @@ export default window.Reacton = async function Reacton(...args) {
       }
 
       $event(name, props) {
-        this.dispatchEvent(new CustomEvent(name, props))
+        (this || document).dispatchEvent(new CustomEvent(name, props))
       }
 
       $when(name) {
@@ -441,7 +441,9 @@ class Handlers {
       return JSON.stringify(thisArg, null, ' ')
     }
     target.apply(this.#array, args)
-    notify.call(this.#env, this.#rely)
+    if (this.#rely) { 
+      notify.call(this.#env, this.#rely)
+    }
     return thisArg
   }
   get(target, key, receiver) {
@@ -482,9 +484,6 @@ class Handlers {
     return observable.call(this.#env, value, getHandlers.call(this.#env, dep))
   }
   set(target, key, value, receiver) {
-    if (Reflect.get(target, key, receiver) === value) {
-      return true
-    }
     if (!Reflect.set(target, key, value, receiver)) {
       return false
     }
