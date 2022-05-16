@@ -2160,10 +2160,48 @@ hello.$data.colors.reverse()
 </app-hello>
 ```
 
-Обратите внимание, что для доступа целевому элементу события, т.е. к элементу INPUT, чтобы получить вводимое значение, внутри атрибута события используется команда:
+Обратите внимание, что для доступа к целевому элементу события, т.е. к элементу INPUT, чтобы получить вводимое значение, внутри атрибута события используется команда:
 
 ```js
 event.target.value
+```
+
+Данный пример можно немного улучшить, добав ему небольшую визуализацию:
+
+```html
+<app-hello>
+  <!-- добавить событие input элементу INPUT -->
+  Длина: <input type="number" value="{{ length }}" @input="length = event.target.value">
+
+  <!-- добавить событие input элементу INPUT -->
+  Ширина: <input type="number" value="{{ width }}" @input="width = event.target.value">
+
+  = <span>{{ length * width }}</span>px
+
+  <!-- визуально отображает размеры -->
+  <div></div>
+
+  <style>
+    div {
+      margin-top: 15px;
+      height: {{ length }}px;
+      width: {{ width }}px;
+      background: green;
+    }
+  </style>
+
+  <script>
+    // экспортировать объект компонента
+    exports = {
+      data() {
+        return {
+          length: 120,
+          width: 120
+        }
+      }
+    }
+  </script>
+</app-hello>
 ```
 
 Все события без исключения, имеют объект события [event](https://learn.javascript.ru/introduction-browser-events#obekt-sobytiya), свойство [target](https://learn.javascript.ru/bubbling-and-capturing#event-target) которого, всегда ссылается на элемент, на котором это событие и произошло.
@@ -2211,7 +2249,7 @@ event.target.value
 
 <h3 id="disabled"># $disabled</h3>
 
-Можно добавлять любые логические атрибуты элементам, которые содержатся в компонентах. Например, добавим специальный логический атрибут ***$disabled***, который добавляет стандартный логический атрибут [disabled](http://htmlbook.ru/html/input/disabled) полю ввода:
+Можно добавлять любые логические атрибуты элементам, которые содержатся в компонентах. Например, добавим специальный логический атрибут ***$disabled***, который добавляет/удаляет стандартный логический атрибут [disabled](http://htmlbook.ru/html/input/disabled) полю ввода:
 
 ```html
 <app-hello>
