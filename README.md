@@ -2811,7 +2811,7 @@ setTimeout(() => this.$event.call(document, 'arr-reverse', {
 </app-hello>
 ```
 
-Процедура добавления маршрутизатора, обычно, выполняется в методе [connected](#connected).
+Процедура добавления маршрутизатора, обычно, выполняется в методе [connected](#connected-disconnected-adopted).
 
 
 Во втором аргументе специального метода **$router**, ему передаётся объект с методами, названия которых, представляют пути для остлеживания, а значения, являются обработчиками, выполняемыми при совпадении пути (т.е. названия метода) и свойства [location.href](https://developer.mozilla.org/en-US/docs/Web/API/Location/href).
