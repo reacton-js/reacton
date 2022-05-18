@@ -3,7 +3,11 @@
 [github](https://github.com/reacton-js/reacton) | 
 [gitflic](https://gitflic.ru/project/reacton/reacton-js) | 
 [npmjs](https://www.npmjs.com/package/reacton-js) | 
-[telegram](https://t.me/reactonjs) | 
+[telegram](https://t.me/reactonjs)
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
 [script](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.js) | 
 [module](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.mjs)
 
