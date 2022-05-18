@@ -7,7 +7,6 @@
 &nbsp;
 &nbsp;
 &nbsp;
-&nbsp;
 [script](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.js) | 
 [module](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.mjs)
 
