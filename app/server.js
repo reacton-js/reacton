@@ -51,14 +51,17 @@ app.use(async (req, res) => {
       
       return await new Promise(done => {
         dom.window.onload = () => {
+          // отрендерить содержимое элемента BODY
           dom.window.Reacton.render(dom.window.document.body).then(done)
         }
       })
     })
 
+    // передать свойство body в представление Main
     res.render("main.hbs", { body })
   }
   else {
+    // или вернуть частичное представление
     res.render("main.hbs")
   }
 })

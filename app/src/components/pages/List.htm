@@ -26,7 +26,7 @@
     li + li {
       margin-top: 10px;
     }
-    button.active {
+    .active {
       background: #222;
       color: #fff;
     }
@@ -37,12 +37,9 @@
       async data() {
         const collator = this.$mixins.collator
         
-        const users = await this.$mixins.fetch(`/workers/${this.$params.category}`)
-
-        // const DB = this.$mixins.DB
-        // const category = this.$params.category
-        // const users = DB.filter(user => user.category === category)
-
+        const users = this.$mixins.DB ? (await this.$mixins.DB).default.filter(user => user.category === this.$params.category)
+          : await this.$mixins.fetch(`/workers/${this.$params.category}`)
+        
         return {
           users,
           ascending: true,

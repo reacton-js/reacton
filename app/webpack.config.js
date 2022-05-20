@@ -14,14 +14,14 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.html?$/,
+        test: /\.html?$/, // выбрать файлы .html и .htm
         loader: "html-loader",
         options: {
           sources: false
         }
       },
       {
-        test: /\.m?js$/,
+        test: /\.m?js$/, // выбрать файлы .js и .mjs
         exclude: /(node_modules|bower_components)/,
         use: {
           loader: 'babel-loader',
@@ -39,6 +39,7 @@ const config = {
 module.exports = (env, argv) => {
   config.mode = argv.mode === 'production' ? 'production' : 'development'
 
+  // добавить плагин HtmlWebpackPlugin только для режима разработки
   if (config.mode === 'development') {
     config.plugins.push(new HtmlWebpackPlugin({
       template: './src/index.html'

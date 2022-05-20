@@ -27,6 +27,7 @@
         }
       },
       connected() {
+        // определить маршрутизатор для главного компонента
         this.$router(this, {
           '/': ()=> {
             this.$data.view = 'page-home'
