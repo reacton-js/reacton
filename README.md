@@ -3137,6 +3137,7 @@ npm i
 ```js
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const TerserPlugin = require("terser-webpack-plugin")
 
 const config = {
   entry: './src/index.js',
@@ -3169,6 +3170,19 @@ const config = {
         }
       }
     ]
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+      }),
+    ],
   },
   plugins: []
 }
