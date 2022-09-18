@@ -287,7 +287,7 @@ function handler(node, frag) {
 
 // ---------------------------------- React ----------------------------------
 
-const regSub = /{{([^]*?)}}/
+const regFix = /{{([^{}]*?)}}/g
 const regLeft = /;|\bof\b|\bin\b/
 const regVars = /\b[A-Za-z_]\w*?\b/g
 
@@ -356,7 +356,16 @@ function react(node, frag, vars) {
     setCallback.call(this, node, frag, node.nodeValue)
   }
   else if (node.nodeValue) {
-    node.nodeValue.replace(regSub, (_, fix) => setCallback.call(this, node, frag, fix))
+    let isFix = false
+    let value = node.nodeValue.replace(regFix, (_, fix) => {
+      if (!isFix) {
+        isFix = true
+      }
+      return node.nodeType === 2 ? `\${${fix}}` : fix
+    })
+    if (isFix) {
+      setCallback.call(this, node, frag, node.nodeType === 2 ? `\`${value}\`` : value)
+    }
   }
   else {
     if (node.attributes) {
@@ -388,14 +397,11 @@ function clear(node) {
     return node.ownerElement.removeAttribute(node.nodeName)
   }
   else if (node.nodeType === 3) {
-    node.data.replace(regSub, (match, _, pos) => {
-      if (pos > 0) {
-        node.splitText(pos)
-      }
-      else {
-        node.splitText(pos + match.length)
-      }
-    })
+    const objReg = regFix.exec(node.data)
+    if (objReg) {
+      node.splitText(objReg.index || objReg[0].length)
+    }
+    regFix.lastIndex = 0
   }
   else {
     if (node.attributes) for (var i = 0; i < node.attributes.length; i++) {

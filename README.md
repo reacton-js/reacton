@@ -1063,8 +1063,8 @@ hello.$$('h1')
 
 ```html
 <app-hello>
-  <!-- вывести значение свойства color в содержимое атрибута title -->
-  <h1 title="{{ color }}">Привет, {{ message }}!</h1>
+  <!-- вывести значение свойства color и message в содержимое атрибута title -->
+  <h1 title="цвет: {{ color }} | сообщение: {{ message }}">Привет, {{ message }}!</h1>
 
   <style>
     h1 {
