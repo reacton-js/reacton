@@ -30,13 +30,14 @@ export default window.Reacton = async function Reacton(...args) {
     }
 
     const { name, data, dataset, html = '', mode, extends:extend = '',
-      connected, disconnected, adopted, attributes, changed, before, after } = object
+      connected, disconnected, adopted, attributes, changed, before, after } = object,
+      SUPERElement = extend ? Object.getPrototypeOf(document.createElement(extend)).constructor : HTMLElement
 
     const template = document.createElement('template')
     template.innerHTML = html
     clear(template.content)
-
-    class Component extends (window[`HTML${extend.charAt(0).toUpperCase() + extend.slice(1)}Element`] || HTMLElement) {
+    
+    class Component extends SUPERElement {
       #root
       
       constructor() {
