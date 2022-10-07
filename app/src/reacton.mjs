@@ -289,6 +289,7 @@ function handler(node, frag) {
 // ---------------------------------- React ----------------------------------
 
 const regFix = /{{([^{}]*?)}}/g
+const regBQuote = /(\\*?)`/g
 const regLeft = /;|\bof\b|\bin\b/
 const regVars = /\b[A-Za-z_]\w*?\b/g
 
@@ -356,16 +357,17 @@ function react(node, frag, vars) {
   else if (node.nodeName.startsWith('data--')) {
     setCallback.call(this, node, frag, node.nodeValue)
   }
-  else if (node.nodeValue) {
-    let isFix = false
-    let value = node.nodeValue.replace(regFix, (_, fix) => {
-      if (!isFix) {
-        isFix = true
-      }
-      return node.nodeType === 2 ? `\${${fix}}` : fix
-    })
-    if (isFix) {
-      setCallback.call(this, node, frag, node.nodeType === 2 ? `\`${value}\`` : value)
+  else if (node.nodeValue && regFix.test(node.nodeValue)) {
+    if (node.nodeType === 2) {
+      const value = node.value.replace(regBQuote, (match, fix) => {
+        return fix.length % 2 ? match : `\\${match}`
+      }).replace(regFix, (_, fix) => {
+        return `\${${fix}}`
+      })
+      setCallback.call(this, node, frag, `\`${value}\``)
+    }
+    else if (node.nodeType === 3) {
+      setCallback.call(this, node, frag, node.data.replace(regFix, (_, fix) => fix))
     }
   }
   else {
