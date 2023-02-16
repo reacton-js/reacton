@@ -33,12 +33,13 @@ Below is an example of a simple single-file component:
 1. [Quick start](#quick-start)
 2. ~~[Component object](#component-object)~~
 3. ~~[Data binding](#data-binding)~~
-4. ~~[Cycles](#cycles)~~
-5. ~~[Displays](#displays)~~
-6. ~~[Child components](#child-components)~~
-7. ~~[Observer](#observer)~~
-8. ~~[Router](#router)~~
-9. ~~[Rendering](#rendering)~~
+4. ~~[Mixins](#mixins)~~
+5. ~~[Cycles](#cycles)~~
+6. ~~[Displays](#displays)~~
+7. ~~[Child components](#child-components)~~
+8. ~~[Observer](#observer)~~
+9. ~~[Router](#router)~~
+10. ~~[Rendering](#rendering)~~
 
 <br>
 <hr>

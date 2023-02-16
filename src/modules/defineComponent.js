@@ -10,6 +10,9 @@ const GFunction = Function('return function*(){}')().constructor
 // список специальных свойств компонента
 const specialProperties = '$, $$, $root, $host, $data, $parent, $when, $event, $router, $mixins'
 
+// пустой объект для прокси примесей компонента
+const emptyObject = {}
+
 // возвращает промис готовности данных компонента
 export const whenData = name => new Promise(ok => eventData.addEventListener(name, ok, { once: true }))
 
@@ -30,6 +33,9 @@ export default function (obj, ok) {
 
   // определить для компонента Суперэлемент
   const SUPERElement = extend ? Object.getPrototypeOf(document.createElement(extend)).constructor : HTMLElement
+
+  // определить прокси для примесей компонента
+  const proxy = new Proxy(emptyObject, { get: (_, key) => mixins?.[key] ?? Reacton.mixins?.[key] })
 
   // определить шаблон для содержимого компонента
   const template = document.createElement('template')
@@ -223,9 +229,9 @@ export default function (obj, ok) {
       return pathRouter
     }
 
-    // возвращает локальный или глобальный объект миксинов
+    // возвращает свойство из локального или глобального объекта миксинов
     get $mixins() {
-      return mixins || window.Reacton.mixins
+      return proxy
     }
   
     // определить для компонента расширяемый элемент

@@ -11,7 +11,7 @@ let mode = 'development'
 
 function copyright(file, encoding, callback) {
   file.contents = Buffer.from(`/*!
- * Reacton.js v2.1.0
+ * Reacton.js v2.1.1
  * (c) 2022-${(new Date).getFullYear()} | github.com/reacton-js
  * Released under the MIT License.
  */\n` + file.contents.toString())
@@ -49,6 +49,7 @@ function modules() {
       through2(copyright),
       gulp.dest('app'),
       gulp.dest('npm'),
+      gulp.dest('gitflic'),
       gulp.dest('server/src')
     )))
     .pipe(gulp.dest('dist'))
