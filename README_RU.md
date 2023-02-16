@@ -16,11 +16,18 @@ Reacton - это JavaScript-библиотека для создания при�
 <r-hello>
   <h1>Привет, {{ message }}!</h1>
 
+  <style>
+    h1 {
+      color: {{ mainColor }};
+    }
+  </style>
+
   <script>
     exports = {
       data() {
         return {
-          message: 'Reacton'
+          message: 'Reacton',
+          mainColor: 'red'
         }
       }
     }

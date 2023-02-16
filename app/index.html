@@ -8,30 +8,14 @@
 </head>
 <body>
   <!-- монтировать компонент Hello -->
-  <r-hello id="hello"></r-hello>
-
-  <!-- шаблон компонента Hello -->
-  <template>
-    <h1>Привет, {{ message }}!</h1>
-
-    <script>
-      exports = {
-        name: 'r-hello', // название компонента
-        data() {
-          return {
-            message: 'Reacton'
-          }
-        }
-      }
-    </script>
-  </template>
+  <r-hello></r-hello>
   
   <!-- подключить библиотеку Reacton -->
   <script src="reacton.js"></script>
 
   <script>
-    // передать шаблон компонента Hello в библиотеку Reacton
-    Reacton(document.querySelector('template'))
+    // передать путь к файлу компонента Hello в библиотеку Reacton
+    Reacton('Hello.htm')
   </script>
 </body>
 </html>

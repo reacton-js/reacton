@@ -1,11 +1,18 @@
 <r-hello>
-  <h1>Привет, {{ message }}!</h1>
+  <h1>Hello, {{ message }}!</h1>
+
+  <style>
+    h1 {
+      color: {{ mainColor }};
+    }
+  </style>
 
   <script>
     exports = {
       data() {
         return {
-          message: 'Reacton'
+          message: 'Reacton',
+          mainColor: 'red'
         }
       }
     }

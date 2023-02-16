@@ -16,11 +16,18 @@ Below is an example of a simple single-file component:
 <r-hello>
   <h1>Hello, {{ message }}!</h1>
 
+  <style>
+    h1 {
+      color: {{ mainColor }};
+    }
+  </style>
+
   <script>
     exports = {
       data() {
         return {
-          message: 'Reacton'
+          message: 'Reacton',
+          mainColor: 'red'
         }
       }
     }
