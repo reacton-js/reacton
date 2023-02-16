@@ -1,0 +1,124 @@
+<r-header extends="header">
+  <!-- <nav :title=" message " :is="show" :hidden="hide">
+    <a href="#">Однин</a>
+    <a href="#">Два</a>
+    <a href="#">Три</a>   
+  </nav> -->
+
+   <!-- определить цикл for-of для элемента DIV -->
+   <div $for="user of users">
+    <div>
+      <p>
+        <b>Имя</b>: {{ user.name }}
+      </p>
+      <p>
+        <b>Возраст</b>: {{ user.age }}
+      </p>
+      <div $for="category in user.skills">
+        <b>{{ category[0].toUpperCase() + category.slice(1) }}</b>:
+        <ol $for="item of user.skills[category]">
+          <li>{{ item }}</li>
+        </ol>
+      </div>
+    </div>
+    <hr>
+  </div>
+
+  <!-- комментарий -->
+  <!-- <h2 :onclick="console.log(message)">Привет, {{ message }}!</h2> -->
+
+  <!-- <section is="r-footer"></section> -->
+
+  <!-- <section $for="item of arr" :is="comp" :hidden="hide" :title=" message "> -->
+  <!-- <section :is="comp" :hidden="hide" :title=" message "></section> -->
+    
+  <!-- <section $for="item of arr">    -->
+  <section $for="i=0, y=5; i < arr.length; i++, y--">   
+    <!-- <section :is="comp" :hidden="hide" :title=" item">{{ item }}</section> -->
+
+    <!-- <p>Элемент: {{ item }}</p> -->
+
+    <div $for="sym of arr2">
+      <!-- <p>{{ item }} : {{ sym }}</p> -->
+      <!-- <section :is="comp" :hidden="hide" :onclick="console.log(item, sym)" :title=" item">{{ item }} : {{ sym }}</section> -->
+      <section :is="comp" :hidden="hide" :onclick="console.log(arr[i], sym)" :title=" arr[i]">{{ arr[i] }} : {{ sym }}</section>
+    </div>
+  </section>
+
+  <!-- <r-test id="test"></r-test> -->
+  <!-- <h2 :hidden="hide">Привет, {{ message }}!</h2> -->
+
+  <!-- <div>
+    <input type="text" :hidden="hide" :required="req">
+  </div> -->
+  
+  <!-- <li :onclick="console.log(item)">Элемент: {{ item }}</li> -->
+
+  <!-- <ul $for="item of arr">
+    <li>Элемент: {{ item }}</li>
+  </ul> -->
+
+  <script>
+    exports = {
+      async data() {
+        await new Promise(ready => setTimeout(ready, 100))
+
+        // const elem = new this.$event()
+        // elem.addEventListener('r-test', () => console.log(this.$mixins.print()))
+        // this.$event(elem, 'r-test')
+
+        const arr = []
+        const count = 3
+        for(var i = 0; i < count; i++) arr[i] = i
+
+        return {
+          message: 'Хедер',
+          hide: 0,
+          show: true,
+          req: 1,
+          arr2: ['A', 'B', 'C', 'D'],
+          arr,
+          color: 'red',
+          comp: 'r-test',
+          users: [
+            {
+              name: 'Дмитрий',
+              age: 28,
+              skills: {
+                frontend: ['HTML', 'CSS'],
+                backend: ['Ruby', 'PHP', 'MySQL']
+              }
+            },
+            {
+              name: 'Ольга',
+              age: 25,
+              skills: {
+                frontend: ['HTML', 'JavaScript'],
+                backend: ['PHP']
+              }
+            },
+            {
+              name: 'Максим',
+              age: 30,
+              skills: {
+                frontend: ['HTML', 'CSS', 'JavaScript', 'jQuery'],
+                backend: ['Ruby', 'MySQL']
+              }
+            }
+          ]
+        }
+      },
+      mixins: {
+        print() {
+          return 'Привет Локально'
+        }
+      },
+      before() {
+        console.time('Update Hello')
+      },
+      after() {
+        console.timeEnd('Update Hello')
+      }
+    }
+  </script>
+</r-header>

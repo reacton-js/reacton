@@ -1,0 +1,1 @@
+export const routes = new Reacton.event()

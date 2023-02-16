@@ -1,0 +1,14 @@
+<r-footer extends="section" mode="open">
+  <p>{{ message }}</p>
+  <slot></slot>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          message: 'Футер'
+        }
+      }
+    }
+  </script>
+</r-footer>

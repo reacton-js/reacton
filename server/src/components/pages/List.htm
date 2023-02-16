@@ -1,0 +1,68 @@
+<r-list mode="open" extends="article">
+  <h2>{{ this.$parent.category }}</h2>
+
+  <style>
+    h2 {
+      text-transform: capitalize;
+    }
+    select {
+      margin-right: 5px;
+    }
+    li + li {
+      margin-top: 10px;
+    }
+    .active {
+      background: #222;
+      color: #fff;
+    }
+  </style>
+
+  Sort by:
+  <select :onchange="userSort(ascending, group = event.target.value)">
+    <option value="id">ID</option>
+    <option value="name">Name</option>
+    <option value="age">Age</option>
+  </select>
+
+  <button :class="ascending ? 'active' : ''" :onclick="userSort(ascending = true, group)"  title="ascending">↑</button>
+  <button :class="!ascending ? 'active' : ''" :onclick="userSort(ascending = false, group)" title="descending">↓</button>
+
+  <ul $for="user of users">
+    <li>
+      <p>ID: {{ user.id }}</p>
+      <p>Name: <a :href="user.id">{{ user.name }}</a></p>
+      <p>Age: {{ user.age }}</p>
+    </li>
+  </ul>
+
+  <style>
+    li {
+      margin-bottom: 20px;
+    }
+    p {
+      margin: 0;
+      margin-bottom: 5px;
+    }
+  </style>
+
+  <script>
+    exports = {
+      async data() {
+        const users = await this.$mixins.getJSON(`/categories/${this.$parent.category}`)
+
+        const collator = new Intl.Collator()
+
+        const userSort = function (ascending, group) {
+          this.users.sort((a, b) => ascending ? collator.compare(a[group], b[group]) : collator.compare(b[group], a[group]))
+        }
+        
+        return {
+          users,
+          group: 'id',
+          ascending: true,
+          userSort
+        }
+      }
+    }
+  </script>
+</r-list>

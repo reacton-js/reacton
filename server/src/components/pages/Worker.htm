@@ -1,0 +1,29 @@
+<r-worker mode="open" extends="article">
+  <h2>{{ this.$parent.category.slice(0, -1) }}</h2>
+
+  <div>
+    <p>ID: {{ user.id }}</p>
+    <p>Name: {{ user.name }}</p>
+    <p>Age: {{ user.age }}</p>
+  </div>
+
+  <style>
+    h2 {
+      text-transform: capitalize;
+    }
+    p {
+      margin: 0;
+      margin-bottom: 5px;
+    }
+  </style>
+
+  <script>
+    exports = {
+      async data() {
+        return {
+          user: await this.$mixins.getJSON(`/categories/${this.$parent.category}/${this.$parent.id}`)
+        }
+      }
+    }
+  </script>
+</r-worker>
