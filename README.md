@@ -38,24 +38,24 @@ Below is an example of a simple single-file component:
 <br>
 
 1. [Quick start](#quick-start)
-2. ~~[Component object](#component-object)~~
+2. [Component object](#component-object)
 3. ~~[Data binding](#data-binding)~~
-4. ~~[Mixins](#mixins)~~
-5. ~~[Cycles](#cycles)~~
-6. ~~[Displays](#displays)~~
-7. ~~[Child components](#child-components)~~
-8. ~~[Observer](#observer)~~
-9. ~~[Router](#router)~~
-10. ~~[Rendering](#rendering)~~
+4. ~~[Cycles](#cycles)~~
+5. ~~[Displays](#displays)~~
+6. ~~[Child components](#child-components)~~
+7. ~~[Observer](#observer)~~
+8. ~~[Router](#router)~~
+9. ~~[Rendering](#rendering)~~
 
 <br>
 <hr>
+<br>
 
 <h2 id="quick-start">Quick start</h2>
 
 <br>
 
-Reacton allows you to create several types of components: Inline, Modular, Template and Single File components. We'll start with Inline Components. Create a new working directory, for example named *app*, and download the [reacton.js](https://raw.githubusercontent.com/reacton-js/reacton/main/dist/reacton.js) file into this directory.
+Reacton allows you to create several types of components: Embedded, Modular, Template and Single File components. We'll start with Embedded Components. Create a new working directory, for example named *app*, and download the [reacton.js](https://raw.githubusercontent.com/reacton-js/reacton/main/dist/reacton.js) file into this directory.
 
 Add an *index.html* file to the directory with the following content:
 
@@ -230,7 +230,7 @@ The default browser window will open again, displaying the welcome message:
 
 <br>
 
-You can pass any number of arguments to a Reacton function, representing different types of components. For example, create an inline Bye component in the *index.html* file:
+You can pass any number of arguments to a Reacton function, representing different types of components. For example, create an embedded Bye component in the *index.html* file:
 
 ```html
 <!DOCTYPE html>
@@ -312,7 +312,7 @@ Make changes to the *index.html* file as shown below:
 </html>
 ```
 
-The name of a Template component can be passed not in an attribute, but in the **name** property of its exported object, as is done for Inline components, for example:
+The name of a Template component can be passed not in an attribute, but in the **name** property of its exported object, as is done for Embedded components, for example:
 
 ```html
 <!DOCTYPE html>
@@ -374,6 +374,247 @@ hello.$data.message = 'Reactive Components'
 After pressing the Enter key, the old message in the browser will change to the new welcome title:
 
 > <h1>Hello, Reactive Components!</h1>
+
+<br>
+<br>
+<h2 id="component-object">Component object</h2>
+
+<br>
+
+Each Embedded and Modular component object must contain a required name property that defines the **name** of the component, as shown below:
+
+```js
+const Hello = {
+  name: 'r-hello'
+}
+```
+
+In Template components, instead of the **name** property, you can use the attribute of the same name:
+
+```html
+<template name="r-hello">
+```
+
+and in Single-file, the name of the component is determined by the name of the element in which the component is enclosed:
+
+```html
+<r-hello>
+```
+
+<br>
+
+The **data()** method must return an object with user data (properties and methods) of the component:
+
+```js
+data() {
+  return {
+    message: 'Reacton',
+    printHello() {
+      return 'Hello, World!'
+    }
+  }
+}
+```
+
+This method can be asynchronous. In the example below, the **message** custom property simulates receiving data from the server:
+
+```js
+async data() {
+  const message = await new Promise(ok => setTimeout(() => ok('Reacton'), 1000))
+
+  return {
+    message
+  }
+}
+```
+
+<br>
+
+For Embedded and Modular components, the **html** property contains the component's HTML content as a string:
+
+```js
+html: `
+  <h1>Hello, {{ message }}!</h1>
+`
+```
+
+The HTML content of Template and Single-File components is defined by their internal markup:
+
+```html
+<h1>Hello, {{ message }}!</h1>
+```
+
+<br>
+
+By default, all components are created without [Shadow DOM](https://javascript.info/shadow-dom). The mode property determines the [level of encapsulation](https://javascript.info/shadow-dom#shadow-tree) for the component to use [local styles](https://javascript.info/shadow-dom-style) and can be either "open" or "closed":
+
+```js
+mode: 'open'
+```
+
+In Template and Single-File components, this property can be replaced by the ***mode*** attribute:
+
+```html
+<r-hello mode="closed">
+```
+
+<br>
+
+The **extends** property allows you to [mount the component](https://javascript.info/custom-elements#customized-built-in-elements) into a standard HTML element:
+
+```js
+extends: 'header'
+```
+
+In Template and Single-File components, this property can be replaced by the ***extends*** attribute:
+
+```html
+<r-hello extends="header">
+```
+
+The element into which the component is mounted must contain the ***is*** attribute with a value corresponding to the name of the component that is mounted into it:
+
+```html
+<header is="r-hello"></header>
+```
+
+<br>
+
+The **attributes** property contains an array with attribute names, when changed, the **changed()** method will be called, for example:
+
+```js
+attributes: ['title'],
+
+changed(name, oldValue, newValue) {
+  console.log(name, oldValue, newValue)
+}
+```
+
+Tracked attributes are a Web Component technology, and the **changed()** method is a shorthand for the [attributeChangedCallback()](https://javascript.info/custom-elements) method.
+
+Add a ***title*** attribute to the Hello component's mount element in the *index.html* file, as shown below:
+
+```html
+<r-hello id="hello" title="Hello"></r-hello>
+```
+
+Now enter the command in the browser console:
+
+```
+hello.title = 'Bye'
+```
+
+After pressing the Enter key, the **changed()** method will print the following line to the console:
+
+```
+title Hello Bye
+```
+
+<br>
+
+The **connected()**, **disconnected()** and **adopted()** methods are shorthand analogs of the [connectedCallback(), disconnectedCallback() and adoptedCallback()](https://javascript.info/custom-elements) methods.
+
+They are called when a component is added to the document - the **connected()** method; removing a component from a document - the **disconnected()** method; and when moving the component to a new document, the **adopted()** method.
+
+The most commonly used methods include the **connected()** method, which allows you to access the HTML content of the component after adding reactive links to it and displaying this content on the browser screen:
+
+```js
+connected() {
+  console.log(this.$('h1'))
+}
+```
+
+In this example, the selected H1 element is displayed on the browser console using the **$()** helper method, which is available in the **connected()** method through the *this* keyword. This method is a shorthand analog of the [querySelector()](https://javascript.info/searching-elements-dom#querySelector) method.
+
+The second helper method is called **$$()** and is shorthand for the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method, as shown below:
+
+```js
+connected() {
+  console.log(this.$$('h1')[0])
+}
+```
+
+To access user data, the *this* keyword is used within the methods of the component object, since all of these methods are executed in the context of the component's data object. In addition, all the methods discussed above can be asynchronous.
+
+In the example below, the **message** custom property is set to a new value one second after the component is added to the document:
+
+```js
+async connected() {
+  this.message = await new Promise(ok => setTimeout(() => ok('Reactive Components'), 1000))
+}
+```
+
+<br>
+
+The **before()** and **after()** methods are called *Before* and *After* the component's user data values change, for example:
+
+```js
+before() {
+  console.time('Update')
+},
+
+after() {
+  console.timeEnd('Update')
+}
+```
+
+Now if you enter the command in the browser console:
+
+```
+hello.$data.message = 'Reactive Components'
+```
+
+then after pressing the Enter key, the console will display the time for which the value of the **message** custom property was updated:
+
+```
+Update: 0.215087890625 ms
+```
+
+<br>
+
+The last property that can be defined in the object of any component is called **mixins** and allows you to create properties and methods common to all components of the same name:
+
+```js
+mixins: {
+  printMessage() {
+    return this.message
+  }
+}
+```
+
+Now the **printMessage()** method will be available to all Hello components. To access the properties and methods of a mixin, a special **$mixins** property is used inside the component markup, after which, through a dot, the name of the requested method or property is indicated:
+
+```html
+<h1>Hello, {{ $mixins.printMessage() }}!</h1>
+```
+
+Impurities work in the following way. First, the properties are queried on the local **mixins** object we created above, then the property is queried on the global mixins object that we will create next, and finally, the property is queried on the component's data object.
+
+For this reason, inside the **printMessage()** method, we were able to access the **message** custom property via the *this* keyword, as shown below:
+
+```js
+printMessage() {
+  return this.message
+}
+```
+
+In order for the created methods and properties to be available to all the component, and not just the ones of the same name, it is necessary to define a global mixin for them through the Reacton function and its **mixins** property.
+
+This must be done before components are passed to this function to define them in the application:
+
+```js
+// global admixture
+Reacton.mixins = {
+  printMessage() {
+    return this.message
+  }
+}
+
+// pass Hello and Bye components to Reacton library
+Reacton(Hello, Bye)
+```
+
+Regardless of the type of mixin you create, all methods and properties defined in it are non-reactive, unlike the component's data object.
 
 <br>
 <br>

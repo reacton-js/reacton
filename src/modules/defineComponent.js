@@ -34,9 +34,6 @@ export default function (obj, ok) {
   // определить для компонента Суперэлемент
   const SUPERElement = extend ? Object.getPrototypeOf(document.createElement(extend)).constructor : HTMLElement
 
-  // определить прокси для примесей компонента
-  const proxy = new Proxy(emptyObject, { get: (_, key) => mixins?.[key] ?? Reacton.mixins?.[key] })
-
   // определить шаблон для содержимого компонента
   const template = document.createElement('template')
 
@@ -96,6 +93,7 @@ export default function (obj, ok) {
         $root: { value: mode ? this.attachShadow({ mode }) : this },
         $host: { value: this },
         $parent: { value: parent?.$data },
+        $mixins: { value: new Proxy(emptyObject, { get: (_, key) => mixins?.[key] ?? Reacton.mixins?.[key] ?? this.$data[key] }) },
       })
 
       // добавить обработчик инициализации компонента
@@ -161,7 +159,7 @@ export default function (obj, ok) {
       
       // если в объекте компонента была определена функция "connected"
       if (typeof connected === 'function') {
-        await connected.call(this) // вызвать эту функцию
+        await connected.call(this.$data) // вызвать эту функцию
       }
 
       // уменьшить на единицу счётчик компонента
@@ -176,7 +174,7 @@ export default function (obj, ok) {
     async disconnectedCallback() {
       // если в объекте компонента была определена функция "disconnected"
       if (typeof disconnected === 'function') {
-        await disconnected.call(this) // вызвать эту функцию
+        await disconnected.call(this.$data) // вызвать эту функцию
       }
     }
 
@@ -184,7 +182,7 @@ export default function (obj, ok) {
     async adoptedCallback() {
        // если в объекте компонента была определена функция "adopted"
       if (typeof adopted === 'function') {
-        await adopted.call(this) // вызвать эту функцию
+        await adopted.call(this.$data) // вызвать эту функцию
       }
     }
 
@@ -200,7 +198,7 @@ export default function (obj, ok) {
     async attributeChangedCallback(...args) {
       // если в объекте компонента была определена функция "changed"
       if (typeof changed === 'function') {
-        await changed.apply(this, args) // вызвать эту функцию
+        await changed.apply(this.$data, args) // вызвать эту функцию
       }
     }
 
@@ -227,11 +225,6 @@ export default function (obj, ok) {
     // возвращает функцию создания маршрутизатора путей
     get $router() {
       return pathRouter
-    }
-
-    // возвращает свойство из локального или глобального объекта миксинов
-    get $mixins() {
-      return proxy
     }
   
     // определить для компонента расширяемый элемент

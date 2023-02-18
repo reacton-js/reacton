@@ -11,7 +11,7 @@ let mode = 'development'
 
 function copyright(file, encoding, callback) {
   file.contents = Buffer.from(`/*!
- * Reacton.js v2.1.1
+ * Reacton.js v2.2.0
  * (c) 2022-${(new Date).getFullYear()} | github.com/reacton-js
  * Released under the MIT License.
  */\n` + file.contents.toString())

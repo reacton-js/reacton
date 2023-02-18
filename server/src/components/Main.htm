@@ -22,12 +22,12 @@
 
         routeEvents.addEventListener('page-change', event => {
           if (event.detail.category) {
-            this.$data.category = event.detail.category
+            this.category = event.detail.category
           }
           if (event.detail.id) {
-            this.$data.id = event.detail.id
+            this.id = event.detail.id
           }
-          this.$data.page = event.detail.page
+          this.page = event.detail.page
         })
       }
     }

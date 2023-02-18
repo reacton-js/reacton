@@ -1,9 +1,11 @@
 // экспортировать объект компонента Hello
 export const Hello = {
   name: 'r-hello',
-  data() {
+  async data() {
+    const message = await new Promise(ok => setTimeout(() => ok('Reacton'), 1000))
+
     return {
-      message: 'Reacton'
+      message
     }
   },
   html: `
