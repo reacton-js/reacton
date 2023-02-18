@@ -1,3 +1,5 @@
+<br>
+
 [EN](https://github.com/reacton-js/reacton/blob/main/README.md) / [RU](https://github.com/reacton-js/reacton/blob/main/README_RU.md)
 
 ![rigl](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
@@ -39,7 +41,7 @@ Below is an example of a simple single-file component:
 
 1. [Quick start](#quick-start)
 2. [Component object](#component-object)
-3. ~~[Data binding](#data-binding)~~
+3. [Data binding](#data-binding)
 4. ~~[Cycles](#cycles)~~
 5. ~~[Displays](#displays)~~
 6. ~~[Child components](#child-components)~~
@@ -615,6 +617,112 @@ Reacton(Hello, Bye)
 ```
 
 Regardless of the type of mixin you create, all methods and properties defined in it are non-reactive, unlike the component's data object.
+
+<br>
+<br>
+<h2 id="data-binding">Data binding</h2>
+
+<br>
+
+To bind a component's user data to its HTML content, except for attributes, double curly braces are used inside which are JavaScript expressions, as shown below:
+
+```html
+<r-hello>
+  <h1>Hello, {{ message.toUpperCase() }}!</h1>
+  <p>Outdoor temperature {{ 5 + 17 - 3 }} degrees...</p>
+
+  <style>
+    h1 {
+      color: {{ mainColor }};
+    }
+  </style>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          message: 'Reacton',
+          mainColor: 'red'
+        }
+      }
+    }
+  </script>
+</r-hello>
+```
+
+In Reacton, you can bind anything to data. Add a custom **tag** property to the component's data object:
+
+```js
+data() {
+  return {
+    tag: 'h1', // style selector
+    message: 'Reacton',
+    mainColor: 'red'
+  }
+}
+```
+
+Now modify the content of the STYLE tag inside the Hello component:
+
+```html
+<style>
+  {{ tag }} {
+    color: {{ mainColor }};
+  }
+</style>
+```
+
+You can read more about working with Web Components styles in their [application guide](https://javascript.info/shadow-dom-style).
+
+<br>
+
+To bind attributes to data, you must precede the attribute name with a colon character:
+
+```html
+<h1 :title="message">Hello, {{ message }}!</h1>
+```
+
+When using bound event attributes, the *this* keyword points to the component's data object. To get the element on which the event occurred, you must use the *event* keyword with the **target** property, for example:
+
+```html
+<h1 :onclick="console.log(event.target)">Hello, {{ message }}!</h1>
+```
+
+You can associate any attributes with data, including Boolean ones. Add a custom **hide** property to the component's data object:
+
+```js
+ata() {
+  return {
+    message: 'Reacton',
+    mainColor: 'red',
+    hide: false // component invisibility
+  }
+}
+```
+
+Now bind the ***hidden*** attribute to this property:
+
+```html
+<h1 :hidden="hide">Hello, {{ message }}!</h1>
+```
+
+Add an ***id*** attribute to the Hello component's mount element to quickly access this component in the console:
+
+```html
+<r-hello id="hello"></r-hello>
+```
+
+Enter the following command in the console:
+
+```
+hello.$data.hide = true
+```
+
+After pressing the Enter key, the H1 element will hide on the browser screen. To make the element appear again, enter the command:
+
+```
+hello.$data.hide = false
+```
 
 <br>
 <br>
