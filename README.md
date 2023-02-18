@@ -691,7 +691,7 @@ When using bound event attributes, the *this* keyword points to the component's 
 You can associate any attributes with data, including Boolean ones. Add a custom **hide** property to the component's data object:
 
 ```js
-ata() {
+data() {
   return {
     message: 'Reacton',
     mainColor: 'red',
