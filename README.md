@@ -1029,5 +1029,15 @@ Now make changes to the contents of the mount element:
 </article>
 ```
 
+A mount element cannot be a loop at the same time. The example below will result in an error:
+
+```html
+<article $for="i = 0; i < 10; i++" :is="page">
+  <h2 slot="home">Home</h2>
+  <h2 slot="about">About</h2>
+  <p>Default content {{ i }} for all mounted components...</p>
+</article>
+```
+
 <br>
 <br>
