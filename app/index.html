@@ -7,15 +7,56 @@
   <title>Reacton</title>
 </head>
 <body>
-  <!-- монтировать компонент Hello -->
-  <r-hello id="hello"></r-hello>
+  <!-- монтировать компонент Content -->
+  <r-content></r-content>
+
+  <!-- шаблон компонента Content -->
+  <template name="r-content">
+    <button :onclick="page = 'r-home'">Главная</button>
+    <button :onclick="page = 'r-about'">О нас</button>
+
+    <!-- элемент монтирования компонентов -->
+    <article :is="page">
+      <h2 slot="home">Главная</h2>
+      <h2 slot="about">О нас</h2>
+      <p>Содержимое по умолчанию для всех монтируемых компонентов...</p>
+    </article>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            page: 'r-home'
+          }
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- шаблон компонента Home -->
+  <template name="r-home" extends="article" mode="open">
+    <!-- слот для именованного содержимого -->
+    <slot name="home"></slot>
+
+    <!-- слот для содержимого по умолчанию -->
+    <slot></slot>
+  </template>
+
+  <!-- шаблон компонента About -->
+  <template name="r-about" extends="article" mode="open">
+    <!-- слот для именованного содержимого -->
+    <slot name="about"></slot>
+
+    <!-- слот для содержимого по умолчанию -->
+    <slot></slot>
+  </template>
   
   <!-- подключить библиотеку Reacton -->
   <script src="reacton.js"></script>
 
   <script>
-    // передать путь к файлу компонента Hello в библиотеку Reacton
-    Reacton('Hello.htm')
+    // передать шаблоны компонентов в библиотеку Reacton
+    Reacton(...document.querySelectorAll('template'))
   </script>
 </body>
 </html>

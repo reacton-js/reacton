@@ -73,12 +73,13 @@ export default function (node, cb) {
         }
       }
 
-      // перенести содержимое старого в новый элемент монтирования
-      while (oldElement.firstChild) {
-        newElement.append(oldElement.firstChild)
+      // если элемент монтирования содержит дочерние узлы
+      if (cb.childs) {
+        // перенести дочерние узлы в новый элемент монтирования
+        newElement.append(...cb.childs)
       }
 
-      // заменить старый новым элементом монтирования
+      // заменить старый элемент новым элементом монтирования
       oldElement.replaceWith(newElement)
     }
   }

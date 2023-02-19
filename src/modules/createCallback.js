@@ -44,13 +44,19 @@ export default function (node, temp, vars) {
     // определить контейнер для создания элемента монтирования
     cb.mount = document.createElement('template')
 
+    // если узел содержит дочерние узлы
+    if (temp.childNodes.length) {
+      // вызвать для дочерних узлов функцию добавления обратного вызова
+      for (var i = 0; i < temp.childNodes.length; i++) {
+        addCallback.call(this, node.childNodes[i], temp.childNodes[i], vars)
+      }
+
+      // сохранить в свойстве массив с дочерними узлами
+      cb.childs = [...node.childNodes]
+    }
+
     // сохранить обратный вызов в хранилище
     SERVICE.get(this).callbacks.set(attr, cb)
-
-    // вызвать для дочерних узлов функцию добавления обратного вызова
-    for (var i = 0; i < temp.childNodes.length; i++) {
-      addCallback.call(this, node.childNodes[i], temp.childNodes[i], vars)
-    }
   }
 
   // иначе, если узел является элементом цикла

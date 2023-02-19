@@ -43,7 +43,7 @@ Below is an example of a simple single-file component:
 2. [Component object](#component-object)
 3. [Data binding](#data-binding)
 4. [Cycles](#cycles)
-5. ~~[Displays](#displays)~~
+5. [Reactive mount](#reactive-mount)
 6. ~~[Child components](#child-components)~~
 7. ~~[Observer](#observer)~~
 8. ~~[Router](#router)~~
@@ -908,6 +908,125 @@ You can use loops with any nesting depth in Reacton:
     }
   </script>
 </r-hello>
+```
+
+<br>
+<br>
+<h2 id="reactive-mount">Reactive mount</h2>
+
+<br>
+
+In order for components to be mounted into standard HTML elements, you must use the **extends** property of the component object and the ***is*** attribute of the element into which the component is mounted. At the same time, the ***is*** attribute is static, i.e. after changing its value, another component will not be able to mount to the element to which it belongs.
+
+This problem can be circumvented by associating the ***is*** attribute with user data. Make changes to the *index.html* file as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the Content component -->
+  <r-content></r-content>
+
+  <!-- Content component template -->
+  <template name="r-content">
+    <button :onclick="page = 'r-home'">Home</button>
+    <button :onclick="page = 'r-about'">About</button>
+
+    <!-- component mount element -->
+    <article :is="page"></article>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            page: 'r-home'
+          }
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- Home component template -->
+  <template name="r-home" extends="article">
+    <h2>Home</h2>
+  </template>
+
+  <!-- About component template -->
+  <template name="r-about" extends="article">
+    <h2>About</h2>
+  </template>
+  
+  <!-- include Reacton library -->
+  <script src="reacton.js"></script>
+
+  <script>
+    // pass the component templates to Reaction library
+    Reacton(...document.querySelectorAll('template'))
+  </script>
+</body>
+</html>
+```
+
+In this example, three components are created. The Content component contains an ARTICLE mount element inside it, with the ***:is*** attribute bound to the **page** property:
+
+```html
+<article :is="page"></article>
+```
+
+The Home and About components will be mounted into this element when the corresponding button is pressed:
+
+```html
+<button :onclick="page = 'r-home'">Home</button>
+<button :onclick="page = 'r-about'">About</button>
+```
+
+To pass all component templates to the Reacton function, the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method and the [spread syntax](https://javascript.info/rest-parameters-spread#spread-syntax) are used:
+
+```js
+Reacton(...document.querySelectorAll('template'))
+```
+
+<br>
+
+A mount element can include some content that is passed to the [slots](https://javascript.info/slots-composition) of the components it mounts.
+
+Modify the Home and About components by giving them an open [Shadow DOM](https://javascript.info/shadow-dom#shadow-tree) with the ***mode*** attribute and two slots, as shown below:
+
+```html
+<!-- Home component template -->
+<template name="r-home" extends="article" mode="open">
+  <!-- named content slot -->
+  <slot name="home"></slot>
+
+  <!-- default content slot -->
+  <slot></slot>
+</template>
+
+<!-- About component template -->
+<template name="r-about" extends="article" mode="open">
+  <!-- named content slot -->
+  <slot name="about"></slot>
+
+  <!-- default content slot -->
+  <slot></slot>
+</template>
+```
+
+Now make changes to the contents of the mount element:
+
+```html
+<!-- component mount element -->
+<article :is="page">
+  <h2 slot="home">Home</h2>
+  <h2 slot="about">About</h2>
+  <p>Default content for all mounted components...</p>
+</article>
 ```
 
 <br>
