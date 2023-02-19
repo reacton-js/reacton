@@ -916,7 +916,7 @@ You can use loops with any nesting depth in Reacton:
 
 <br>
 
-In order for components to be mounted into standard HTML elements, you must use the **extends** property of the component object and the ***is*** attribute of the element into which the component is mounted. At the same time, the ***is*** attribute is static, i.e. after changing its value, another component will not be able to mount to the element to which it belongs.
+In order for components to be [mounted](https://javascript.info/custom-elements#customized-built-in-elements) into standard HTML elements, you must use the **extends** property of the component object and the ***is*** attribute of the element into which the component is mounted. At the same time, the ***is*** attribute is static, i.e. after changing its value, another component will not be able to mount to the element to which it belongs.
 
 This problem can be circumvented by associating the ***is*** attribute with user data. Make changes to the *index.html* file as shown below:
 
