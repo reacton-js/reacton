@@ -42,7 +42,7 @@ Below is an example of a simple single-file component:
 1. [Quick start](#quick-start)
 2. [Component object](#component-object)
 3. [Data binding](#data-binding)
-4. ~~[Cycles](#cycles)~~
+4. [Cycles](#cycles)
 5. ~~[Displays](#displays)~~
 6. ~~[Child components](#child-components)~~
 7. ~~[Observer](#observer)~~
@@ -722,6 +722,192 @@ After pressing the Enter key, the H1 element will hide on the browser screen. To
 
 ```
 hello.$data.hide = false
+```
+
+To avoid changing the **hide** property in the console, add a button to the content of the Hello component with an ***onclick*** attribute bound to this property, as shown below:
+
+```html
+<button :onclick="hide = !hide">Hide / Show</button>
+```
+
+<br>
+<br>
+<h2 id="cycles">Cycles</h2>
+
+<br>
+
+Reacton supports three kinds of *"for"* loops that are implemented in JavaScript. They are all defined with a special ***$for*** attribute and output the contents of their HTML elements as many times as required by the loop condition.
+
+In the example below, the *"for"* loop outputs 10 paragraphs with numbers from 0 to 9:
+
+```html
+<r-hello>
+  <div $for="i = 0; i < 10; i++">
+    <p>Number: {{ i }}</p>
+  </div>
+</r-hello>
+```
+
+The ***$for*** special attribute cannot use variable definition operators: *var*, *let*, and *const*, respectively. This will result in an error:
+
+```html
+<div $for="var i = 0; i < 10; i++">
+  <p>Number: {{ i }}</p>
+</div>
+```
+
+<br>
+
+The *"for-in"* loop is used to output the contents of objects, as shown below:
+
+```html
+<r-hello>
+  <ul $for="prop in user">
+    <li>
+      <b>{{ prop }}</b>: {{ user[prop] }}
+    </li>
+  </ul>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          user: {
+            name: 'Leanne Graham',
+            age: 28
+          }
+        }
+      }
+    }
+  </script>
+</r-hello>
+```
+
+<br>
+
+The *"for-of"* loop is designed to work with arrays:
+
+```html
+<r-hello>
+  <ul $for="col of colors">
+    <li>{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          colors: ['red', 'green', 'blue']
+        }
+      }
+    }
+  </script>
+</r-hello>
+```
+
+<br>
+
+Loop HTML elements can have events that are automatically bound to its variables:
+
+```html
+<r-hello>
+  <ul $for="col of colors">
+    <li :onclick="console.log(col)">{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          colors: ['red', 'green', 'blue']
+        }
+      }
+    }
+  </script>
+</r-hello>
+```
+
+Events will always use the current value of the loop variable for their iteration phase, even after the array has been modified:
+
+```html
+<r-hello>
+  <button :onclick="colors.reverse()">Reverse array</button>
+  
+  <ul $for="col of colors">
+    <li :onclick="console.log(col)">{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          colors: ['red', 'green', 'blue']
+        }
+      }
+    }
+  </script>
+</r-hello>
+```
+
+<br>
+
+You can use loops with any nesting depth in Reacton:
+
+```html
+<r-hello>
+  <div $for="user of users">
+    <div>
+      <p>
+        <b>Name</b>: {{ user.name }}
+      </p>
+      <p>
+        <b>Age</b>: {{ user.age }}
+      </p>
+      <div $for="category in user.skills">
+        <b>{{ category[0].toUpperCase() + category.slice(1) }}</b>:
+        <ol $for="item of user.skills[category]">
+          <li>{{ item }}</li>
+        </ol>
+      </div>
+    </div>
+    <hr>
+  </div>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          users: [
+            {
+              name: 'Leanne Graham',
+              age: 28,
+              skills: {
+                frontend: ['HTML', 'CSS'],
+                backend: ['Ruby', 'PHP', 'MySQL']
+              }
+            },
+            {
+              name: 'Clementine Bauch',
+              age: 25,
+              skills: {
+                frontend: ['HTML', 'JavaScript'],
+                backend: ['PHP']
+              }
+            },
+            {
+              name: 'Chelsey Dietrich',
+              age: 30,
+              skills: {
+                frontend: ['HTML', 'CSS', 'JavaScript', 'jQuery'],
+                backend: ['Ruby', 'MySQL']
+              }
+            }
+          ]
+        }
+      }
+    }
+  </script>
+</r-hello>
 ```
 
 <br>

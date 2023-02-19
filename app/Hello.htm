@@ -1,11 +1,15 @@
 <r-hello>
-  <h1>Привет, {{ message }}!</h1>
+  <button :onclick="colors.reverse()">Обратить массив</button>
+  
+  <ul $for="col of colors">
+    <li :onclick="console.log(col)">{{ col }}</li>
+  </ul>
 
   <script>
     exports = {
       data() {
         return {
-          message: 'Reacton'
+          colors: ['красный', 'зелёный', 'синий']
         }
       }
     }
