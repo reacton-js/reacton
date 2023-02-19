@@ -807,7 +807,7 @@ The *"for-of"* loop is designed to work with arrays:
 
 <br>
 
-Loop HTML elements can have events that are automatically bound to its variables:
+Event attributes of loop HTML elements can be bound to loop variables:
 
 ```html
 <r-hello>
