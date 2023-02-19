@@ -695,7 +695,7 @@ data() {
   return {
     message: 'Reacton',
     mainColor: 'red',
-    hide: false // скрытность компонента
+    hide: false // невидимость элемента
   }
 }
 ```

@@ -695,7 +695,7 @@ data() {
   return {
     message: 'Reacton',
     mainColor: 'red',
-    hide: false // component invisibility
+    hide: false // element invisibility
   }
 }
 ```
