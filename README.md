@@ -46,8 +46,9 @@ Below is an example of a simple single-file component:
 5. [Reactive mount](#reactive-mount)
 6. [Child components](#child-components)
 7. [Custom events](#custom-events)
-8. ~~[Router](#router)~~
-9. ~~[Rendering](#rendering)~~
+8. [Features work](#features-work)
+9. ~~[Router](#router)~~
+10. ~~[Rendering](#rendering)~~
 
 <br>
 <hr>
@@ -1459,6 +1460,190 @@ you need to get the event element from the global mixin:
 // get event element eventReverse
 const eventReverse = this.$mixins.eventReverse
 ```
+
+<br>
+<br>
+<h2 id="features-work">Features work</h2>
+
+<br>
+
+All methods and expressions of a component, except for the **data()** method, are executed in the context of the component's data object. The **data()** method of the component object is executed in the context of the component itself.
+
+Make changes to the index.html file, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the Hello component -->
+  <r-hello id="hello" data-title="Hello"></r-hello>
+
+  <!-- Hello component template -->
+  <template name="r-hello">
+    <h1>{{ id }}</h1>
+    <h1>{{ $host.id }}</h1>
+    <h1>{{ $host.dataset.title }}</h1>
+
+    <h2>{{ printIdData() }}</h2>
+    <h2>{{ printIdAttr() }}</h2>
+    <h2>{{ printTitle() }}</h2>
+
+    <script>
+      exports = {
+        data() {
+          console.log('data: ', this)
+
+          return {
+            id: 'ok',
+            printIdData() {
+              console.log('printIdData: ', this)
+              return this.id
+            },
+            printIdAttr() {
+              console.log('printIdAttr: ', this)
+              return this.$host.id
+            },
+            printTitle() {
+              console.log('printTitle: ', this)
+              return this.dataset.title
+            }
+          }
+        },
+        connected() {
+          console.log('connected: ', this)
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- include Reacton library -->
+  <script src="reacton.js"></script>
+
+  <script>
+    // pass the Hello component template to the Reaction library
+    Reacton(document.querySelector('template[name="r-hello"]'))
+  </script>
+</body>
+</html>
+```
+
+As you can see from this example, the **$host** special property is used in the expressions to get the value of the ***id*** and ***data-title*** attributes of the component's mount element:
+
+```html
+<h1>{{ $host.id }}</h1>
+<h1>{{ $host.dataset.title }}</h1>
+```
+
+However, accessing the value of the ***data-title*** attribute in the **printTitle()** method occurs without using the **$host** special property. Instead, the standard property of HTML [dataset](https://javascript.info/dom-attributes-and-properties#non-standard-attributes-dataset) elements is applied:
+
+```js
+printTitle() {
+  console.log('printTitle: ', this)
+  return this.dataset.title
+}
+```
+
+But the **dataset** property is not in the custom properties definition of the component's data object. The data object has only one **id** property and three methods:
+
+```js
+return {
+  id: 'ok',
+  printIdData() {
+    console.log('printIdData: ', this)
+    return this.id
+  },
+  printIdAttr() {
+    console.log('printIdAttr: ', this)
+    return this.$host.id
+  },
+  printTitle() {
+    console.log('printTitle: ', this)
+    return this.dataset.title
+  }
+}
+```
+
+The component's data object is a [proxy](https://javascript.info/proxy) and works as follows: first, the property is looked up in the component's data object, and if there is no such property, then the search continues in the component itself. If the component does not have the required property, then the data object of the parent component, if any, is looked up.
+
+For this reason, the method:
+
+```js
+printIdData() {
+  console.log('printIdData: ', this)
+  return this.id
+}
+```
+
+and expression:
+
+```html
+<h1>{{ id }}</h1>
+```
+
+will return the value "ok" of the custom **id** property.
+
+To access the ***id*** attribute of a component's mount element, use the special **$host** property, which always refers to the component:
+
+```js
+printIdAttr() {
+  console.log('printIdAttr: ', this)
+  return this.$host.id
+}
+```
+
+```html
+<h1>{{ $host.id }}</h1>
+```
+
+If the component did not have a custom **id** property that matches the name of the attribute, then to get the value of this attribute, one could do without the special **$host** property:
+
+```js
+printIdAttr() {
+  console.log('printIdAttr: ', this)
+  return this.id
+}
+```
+
+This is exactly what happens in the method:
+
+```js
+printTitle() {
+  console.log('printTitle: ', this)
+  return this.dataset.title
+}
+```
+
+Since the component data object does not have a custom **dataset** property, the search occurs in the component itself, which has such a property.
+
+However, in the expression:
+
+```html
+<h1>{{ $host.dataset.title }}</h1>
+```
+
+the **$host** property still applies:
+
+It can be replaced with the *this* keyword:
+
+```html
+<h1>{{ this.dataset.title }}</h1>
+```
+
+and the result will not change.
+
+But the example below will result in an error:
+
+```html
+<h1>{{ dataset.title }}</h1>
+```
+
+Since quick access, i.e. without the *this* keyword, have only all the special and custom properties and methods of the component.
 
 <br>
 <br>
