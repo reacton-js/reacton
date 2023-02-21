@@ -10,17 +10,17 @@
   <!-- монтировать компонент Upper -->
   <r-upper id="upper"></r-upper>
 
+  <!-- монтировать компонент Lower -->
+  <r-lower id="lower"></r-lower>
+
   <!-- шаблон компонента Upper -->
   <template name="r-upper">
     <h1>{{ name }}</h1>
 
-    <!-- вывести массив цветов -->
+    <!-- вывести в цикле массив цветов -->
     <ul $for="col of colors">
       <li>{{ col }}</li>
     </ul>
-
-    <!-- монтировать компонент Middle -->
-    <r-middle id="middle"></r-middle>
 
     <script>
       exports = {
@@ -29,24 +29,23 @@
             name: 'Upper',
             colors: ['красный', 'зелёный', 'синий']
           }
-        }
-      }
-    </script>
-  </template>
+        },
+        async connected() {
+          // импортировать елемент события eventReverse
+          // const { eventReverse } = await import('./Events.js')
 
-  <!-- шаблон компонента Middle -->
-  <template name="r-middle">
-    <h2>{{ $parent.name }} > {{ name }}</h2>
+          // получить елемент события eventReverse
+          const eventReverse = this.$mixins.eventReverse
 
-    <!-- монтировать компонент Lower -->
-    <r-lower id="lower"></r-lower>
+          // добавить элементу eventReverse обработчик события "reverse-colors"
+          eventReverse.addEventListener('reverse-colors', () => {
+            this.colors.reverse() // обратить массив
+          })
 
-    <script>
-      exports = {
-        data() {
-          return {
-            name: 'Middle'
-          }
+          // добавить элементу eventReverse обработчик события "new-colors"
+          eventReverse.addEventListener('new-colors', event => {
+            this.colors = event.detail // новый массив
+          })
         }
       }
     </script>
@@ -54,21 +53,34 @@
   
   <!-- шаблон компонента Lower -->
   <template name="r-lower">
-    <h3>{{ $parent.$parent.name }} > {{ $parent.name }} > {{ name }}</h3>
+    <h3>{{ name }}</h3>
 
-    <!-- обратить массив цветов в компоненте Upper -->
-    <button :onclick="$parent.colors.reverse()">Обратить массив</button>
+    <button :onclick="reverseArray()">Обратить массив</button>
 
-    <!-- вывести массив цветов из компонента Upper -->
-    <ul $for="col of $parent.colors">
-      <li>{{ col }}</li>
-    </ul>
+    <button :onclick="newArray()">Новый массив</button>
 
     <script>
       exports = {
-        data() {
+        async data() {
+          // импортировать елемент события eventReverse
+          // const { eventReverse } = await import('./Events.js')
+
+          // получить елемент события eventReverse
+          const eventReverse = this.$mixins.eventReverse
+
           return {
-            name: 'Lower'
+            name: 'Lower',
+            reverseArray() {
+              // вызвать событие "reverse-colors" для элемента eventReverse
+              this.$event(eventReverse, 'reverse-colors')
+            },
+            newArray() {
+              // вызвать событие "new-colors" для элемента eventReverse
+              this.$event(eventReverse, 'new-colors', {
+                // передать в обработчик события новый массив
+                detail: ['синий', 'оранжевый', 'фиолетовый', 'золотой']
+              })
+            }
           }
         }
       }
@@ -79,6 +91,11 @@
   <script src="reacton.js"></script>
 
   <script>
+    Reacton.mixins = {
+      // создать елемент события eventReverse
+      eventReverse: new Reacton.event()
+    }
+
     // передать шаблоны компонентов в библиотеку Reacton
     Reacton(...document.querySelectorAll('template[name]'))
   </script>

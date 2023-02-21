@@ -45,7 +45,7 @@ Below is an example of a simple single-file component:
 4. [Cycles](#cycles)
 5. [Reactive mount](#reactive-mount)
 6. [Child components](#child-components)
-7. ~~[Observer](#observer)~~
+7. [Custom events](#custom-events)
 8. ~~[Router](#router)~~
 9. ~~[Rendering](#rendering)~~
 
@@ -1220,6 +1220,245 @@ Now make changes to the Lower component template by adding to it the display of 
 ```
 
 As you can see from this example, the **$parent** property is applied here only once. This is due to the fact that there is no custom property named **colors** in the Middle component and the search will continue in the Upper component.
+
+<br>
+<br>
+<h2 id="custom-events">Custom events</h2>
+
+<br>
+
+For interaction between various components, and not just child ones, an improved mechanism of [custom events](https://javascript.info/dispatch-events) is used. This mechanism involves using the **event()** method of the Reacton function and the special **$event()** method that is available in every component.
+
+Create an *Events.js* file in the *app* directory with the following content:
+
+```js
+// export event element eventReverse
+export const eventReverse = new Reacton.event()
+```
+
+When the **event()** method of the Reaction function is called as a constructor, it returns a new [fragment of the document](https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment), which is the source and recipient of user events.
+
+
+Now make changes to the *index.html* file, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the Upper component -->
+  <r-upper id="upper"></r-upper>
+
+  <!-- mount the Lower component -->
+  <r-lower id="lower"></r-lower>
+
+  <!-- Upper component template -->
+  <template name="r-upper">
+    <h1>{{ name }}</h1>
+
+    <!-- display an array of colors in the cycle -->
+    <ul $for="col of colors">
+      <li>{{ col }}</li>
+    </ul>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            name: 'Upper',
+            colors: ['red', 'green', 'blue']
+          }
+        },
+        async connected() {
+          // import event element eventReverse
+          const { eventReverse } = await import('./Events.js')
+
+          // add the "reverse-colors" event handler to the eventReverse element
+          eventReverse.addEventListener('reverse-colors', () => {
+            this.colors.reverse() // reverse array
+          })
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- Lower component template -->
+  <template name="r-lower">
+    <h3>{{ name }}</h3>
+
+    <button :onclick="reverseArray()">Reverse array</button>
+
+    <script>
+      exports = {
+        async data() {
+          // import event element eventReverse
+          const { eventReverse } = await import('./Events.js')
+
+          return {
+            name: 'Lower',
+            reverseArray() {
+              // trigger "reverse-colors" event on element eventReverse
+              this.$event(eventReverse, 'reverse-colors')
+            }
+          }
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- include Reacton library -->
+  <script src="reacton.js"></script>
+
+  <script>
+    // pass the component templates to Reaction library
+    Reacton(...document.querySelectorAll('template[name]'))
+  </script>
+</body>
+</html>
+```
+
+In this example, an asynchronous **connected()** method is created in the Upper component template. Inside this method, the event element created at the previous step is imported from an external file and a handler is assigned to it:
+
+```js
+async connected() {
+  // import event element eventReverse
+  const { eventReverse } = await import('./Events.js')
+
+  // add the "reverse-colors" event handler to the eventReverse element
+  eventReverse.addEventListener('reverse-colors', () => {
+    this.colors.reverse() // reverse array
+  })
+}
+```
+
+<br>
+
+Inside the Lower component template, the **data()** method is also asynchronous so that the outer event element can be imported:
+
+```js
+async data() {
+  // import event element eventReverse
+  const { eventReverse } = await import('./Events.js')
+
+  return {
+    name: 'Lower',
+    reverseArray() {
+      // trigger "reverse-colors" event on element eventReverse
+      this.$event(eventReverse, 'reverse-colors')
+    }
+  }
+}
+```
+
+In addition, a custom **reverseArray()** method has been added to the Lower component, inside which, using the special **$event()** method, the *"reverse-colors"* event is called for the imported element when the button is clicked, as shown below:
+
+```html
+<button :onclick="reverseArray()">Reverse array</button>
+```
+
+The first argument of the special **$event()** method is the event element eventReverse, and the second argument is the name of the event to be called:
+
+```js
+ this.$event(eventReverse, 'reverse-colors')
+```
+
+The **$event()** method can also receive a third argument, in which you can pass parameters that fully correspond to the parameters of the [CustomEvent](https://javascript.info/dispatch-events#custom-events) constructor. For example, you can pass the **detail** property, which allows you to share data between components.
+
+When the **event()** method of the Reaction function is called not as a constructor, it works similarly to the special **$event()** method.
+
+<br>
+
+Add a new *"new-colors"* event handler to the **connected()** method of the Upper component, as shown below:
+
+```js
+async connected() {
+  // import event element eventReverse
+  const { eventReverse } = await import('./Events.js')
+
+  // add the "reverse-colors" event handler to the eventReverse element
+  eventReverse.addEventListener('reverse-colors', () => {
+    this.colors.reverse() // reverse array
+  })
+
+  // add the "new-colors" event handler to the eventReverse element
+  eventReverse.addEventListener('new-colors', event => {
+    this.colors = event.detail // new array
+  })
+}
+```
+
+Note that the event handler now has an **event** parameter through which you can access the **detail** property.
+
+Now modify the contents of the Lower component's template by adding a new button to it and a **newArray()** custom method that passes a new array of colors to the *"new-colors"* event handler:
+
+```html
+<template name="r-lower">
+  <h3>{{ name }}</h3>
+
+  <button :onclick="reverseArray()">Reverse array</button>
+
+  <button :onclick="newArray()">New array</button>
+
+  <script>
+    exports = {
+      async data() {
+        // import event element eventReverse
+        const { eventReverse } = await import('./Events.js')
+
+        return {
+          name: 'Lower',
+          reverseArray() {
+            // trigger "reverse-colors" event on element eventReverse
+            this.$event(eventReverse, 'reverse-colors')
+          },
+          newArray() {
+            // trigger "new-colors" event on element eventReverse
+            this.$event(eventReverse, 'new-colors', {
+              // pass a new array to the event handler
+              detail: ['blue', 'orange', 'purple', 'gold']
+            })
+          }
+        }
+      }
+    }
+  </script>
+</template>
+```
+
+Thus, data can be easily exchanged between different components.
+
+<br>
+
+To avoid having to import the event element into each individual component, you can resort to creating the event element in a global mixin before passing the components to the Reacton function:
+
+```js
+Reacton.mixins = {
+  // create event element eventReverse
+  eventReverse: new Reacton.event()
+}
+
+// pass the component templates to Reaction library
+Reacton(...document.querySelectorAll('template[name]'))
+```
+
+Then instead of importing the event element from an external file:
+
+```js
+// import event element eventReverse
+const { eventReverse } = await import('./Events.js')
+```
+
+you need to get the event element from the global mixin:
+
+```js
+// get event element eventReverse
+const eventReverse = this.$mixins.eventReverse
+```
 
 <br>
 <br>
