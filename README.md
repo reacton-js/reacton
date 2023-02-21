@@ -44,7 +44,7 @@ Below is an example of a simple single-file component:
 3. [Data binding](#data-binding)
 4. [Cycles](#cycles)
 5. [Reactive mount](#reactive-mount)
-6. ~~[Child components](#child-components)~~
+6. [Child components](#child-components)
 7. ~~[Observer](#observer)~~
 8. ~~[Router](#router)~~
 9. ~~[Rendering](#rendering)~~
@@ -125,7 +125,7 @@ export const Hello = {
 }
 ```
 
-Make changes to the *index.html* file as shown below:
+Make changes to the *index.html* file, as shown below:
 
 ```html
 <!DOCTYPE html>
@@ -194,7 +194,7 @@ Create a *Hello.htm* file in the app directory with the following content:
 </r-hello>
 ```
 
-Make changes to the *index.html* file as shown below:
+Make changes to the *index.html* file, as shown below:
 
 ```html
 <!DOCTYPE html>
@@ -273,7 +273,7 @@ You can pass any number of arguments to a Reacton function, representing differe
 
 The template type of components allows you to combine the simplicity of HTML syntax and the absence of the need to run the application through the server. Template components are defined in a TEMPLATE element with an optional ***name*** attribute.
 
-Make changes to the *index.html* file as shown below:
+Make changes to the *index.html* file, as shown below:
 
 ```html
 <!DOCTYPE html>
@@ -360,7 +360,7 @@ The name of a Template component can be passed not in an attribute, but in the *
 
 Regardless of the type, all components in Reacton are reactive. You can easily see this if you change the value of the custom **message** property of the Hello component in the browser console. To access any custom component data, the special **$data** property is used.
 
-To access this property, you must first select a component element. To make things easier, let's assign an ***id*** attribute with the value "hello" to the Hello component's mount tag, as shown below:
+To access this property, you must first select the component element. To simplify the task, assign the ***id*** attribute with the value "hello" to the mount element of the Hello component, as shown below:
 
 ```html
 <!-- mount the Hello component -->
@@ -536,7 +536,17 @@ connected() {
 }
 ```
 
-To access user data, the *this* keyword is used within the methods of the component object, since all of these methods are executed in the context of the component's data object. In addition, all the methods discussed above can be asynchronous.
+To access user data, the *this* keyword is used within the methods of the component object, since all of these methods are executed in the context of the component's data object.
+
+If you need to access the component itself, then the special **$host** property is used, which refers to the component's mount element:
+
+```js
+connected() {
+  console.log(this.$host)
+}
+```
+
+In addition, all the methods discussed above can be asynchronous.
 
 In the example below, the **message** custom property is set to a new value one second after the component is added to the document:
 
@@ -712,7 +722,7 @@ Add an ***id*** attribute to the Hello component's mount element to quickly acce
 <r-hello id="hello"></r-hello>
 ```
 
-Enter the following command in the console:
+Enter the following command in the browser console:
 
 ```
 hello.$data.hide = true
@@ -918,7 +928,9 @@ You can use loops with any nesting depth in Reacton:
 
 In order for components to be [mounted](https://javascript.info/custom-elements#customized-built-in-elements) into standard HTML elements, you must use the **extends** property of the component object and the ***is*** attribute of the element into which the component is mounted. At the same time, the ***is*** attribute is static, i.e. after changing its value, another component will not be able to mount to the element to which it belongs.
 
-This problem can be circumvented by associating the ***is*** attribute with user data. Make changes to the *index.html* file as shown below:
+This problem can be circumvented by associating the ***is*** attribute with user data.
+
+Make changes to the *index.html* file, as shown below:
 
 ```html
 <!DOCTYPE html>
@@ -967,7 +979,7 @@ This problem can be circumvented by associating the ***is*** attribute with user
 
   <script>
     // pass the component templates to Reaction library
-    Reacton(...document.querySelectorAll('template'))
+    Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
 </html>
@@ -986,10 +998,10 @@ The Home and About components will be mounted into this element when the corresp
 <button :onclick="page = 'r-about'">About</button>
 ```
 
-To pass all component templates to the Reacton function, the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method and the [spread syntax](https://javascript.info/rest-parameters-spread#spread-syntax) are used:
+To pass all component templates with a ***name*** attribute to the Reacton function, the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method and the [spread syntax](https://javascript.info/rest-parameters-spread#spread-syntax) are used:
 
 ```js
-Reacton(...document.querySelectorAll('template'))
+Reacton(...document.querySelectorAll('template[name]'))
 ```
 
 <br>
@@ -1038,6 +1050,176 @@ A mount element cannot be a loop at the same time. The example below will result
   <p>Default content {{ i }} for all mounted components...</p>
 </article>
 ```
+
+<br>
+<br>
+<h2 id="child-components">Child components</h2>
+
+<br>
+
+To access the user data of the parent components, the child components use a special property **$parent**, which refers to the data object of the parent component.
+
+Make changes to the *index.html* file, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the Upper component -->
+  <r-upper id="upper"></r-upper>
+
+  <!-- Upper component template -->
+  <template name="r-upper">
+    <h1>{{ name }}</h1>
+
+    <!-- mount the Middle component -->
+    <r-middle id="middle"></r-middle>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            name: 'Upper'
+          }
+        }
+      }
+    </script>
+  </template>
+
+  <!-- Middle component template -->
+  <template name="r-middle">
+    <h2>{{ $parent.name }} > {{ name }}</h2>
+
+    <!-- mount the Lower component -->
+    <r-lower id="lower"></r-lower>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            name: 'Middle'
+          }
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- Lower component template -->
+  <template name="r-lower">
+    <h3>{{ $parent.$parent.name }} > {{ $parent.name }} > {{ name }}</h3>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            name: 'Lower'
+          }
+        }
+      }
+    </script>
+  </template>
+  
+  <!-- include Reacton library -->
+  <script src="reacton.js"></script>
+
+  <script>
+    // pass the component templates to Reaction library
+    Reacton(...document.querySelectorAll('template[name]'))
+  </script>
+</body>
+</html>
+```
+
+As you can see from the example above, in the Lower component, the **$parent** property is applied twice:
+
+```html
+<h3>{{ $parent.$parent.name }} > {{ $parent.name }} > {{ name }}</h3>
+```
+
+The first time this property refers to the data object of the Middle component, inside which the Lower component is located, and the second time, to the data object of the Upper component, inside which the Middle component is located.
+
+If a property is changed in the parent component, these changes will be reflected in the child components.
+
+Enter the command in the browser console:
+
+```
+upper.$data.name = 'Wrapper'
+```
+
+To change the custom property of a parent component from a child component, you need to use the special **$parent** property again, as shown below:
+
+```
+middle.$parent.name = 'Wrapper'
+```
+
+```
+lower.$parent.$parent.name = 'Wrapper'
+```
+
+However, if there is no corresponding property in the first parent component, this **$parent** property will look for it in the next one, i.e. in the parent of the parent component. Which avoids a long chain of writing **\$parent** methods.
+
+Make changes to the Upper component template by adding an array of colors named **colors** to it, as shown below:
+
+```html
+<!-- Upper component template -->
+<template name="r-upper">
+  <h1>{{ name }}</h1>
+
+  <!-- display an array of colors in the cycle -->
+  <ul $for="col of colors">
+    <li>{{ col }}</li>
+  </ul>
+
+  <!-- mount the Middle component -->
+  <r-middle id="middle"></r-middle>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          name: 'Upper',
+          colors: ['red', 'green', 'blue']
+        }
+      }
+    }
+  </script>
+</template>
+```
+
+Now make changes to the Lower component template by adding to it the display of this array and a button for its reverse:
+
+```html
+<!-- Lower component template -->
+<template name="r-lower">
+  <h3>{{ $parent.$parent.name }} > {{ $parent.name }} > {{ name }}</h3>
+
+  <!-- reverse an array of colors in the Upper component -->
+  <button :onclick="$parent.colors.reverse()">Reverse array</button>
+
+  <!-- display an array of colors from the component Upper in the cycle -->
+  <ul $for="col of $parent.colors">
+    <li>{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          name: 'Lower'
+        }
+      }
+    }
+  </script>
+</template>
+```
+
+As you can see from this example, the **$parent** property is applied here only once. This is due to the fact that there is no custom property named **colors** in the Middle component and the search will continue in the Upper component.
 
 <br>
 <br>

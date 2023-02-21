@@ -57,19 +57,6 @@ export default function (obj, ok) {
       // увеличить на единицу счётчик компонента
       count++
 
-      // добавить компонент в хранилище сервисных свойств
-      SERVICE.set(this, {
-        nodes: [],
-        host: this,
-        values: new WeakMap(),
-        callbacks: new WeakMap(),
-        dependencies: new WeakMap(),
-        booleans: new WeakMap(),
-        childs,
-        before,
-        after,
-      })
-
       // получить родительский элемент компонента
       let parent = this.parentNode.host || this.parentNode
 
@@ -87,6 +74,19 @@ export default function (obj, ok) {
         // добавить текущий компонент в родительское множество дочерних
         SERVICE.get(parent).childs.add(this)
       }
+
+      // добавить компонент в хранилище сервисных свойств
+      SERVICE.set(this, {
+        host: this,
+        values: new WeakMap(),
+        nodes: parent ? SERVICE.get(parent).nodes : [],
+        callbacks: parent ? SERVICE.get(parent).callbacks : new WeakMap(),
+        dependencies: new WeakMap(),
+        booleans: new WeakMap(),
+        childs,
+        before,
+        after,
+      })
 
       // определить специальные свойства компонента
       Object.defineProperties(this, {
@@ -124,8 +124,8 @@ export default function (obj, ok) {
       Object.defineProperty(this, '$data', {
         value: new Proxy(typeof data === 'function' ? addObserver.call(this, await data.call(this)) : {}, {
           get: (target, key, receiver) => {
-            // вернуть значение свойства объекта данных или компонента
-            return target.hasOwnProperty(key) ? Reflect.get(target, key, receiver) : this[key]
+            // вернуть значение свойства объекта данных или самого компонента или объекта данных его родителя
+            return target.hasOwnProperty(key) ? Reflect.get(target, key, receiver) : this[key] ?? this.$parent?.[key]
           }
         })
       })

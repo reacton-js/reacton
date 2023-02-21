@@ -32,9 +32,9 @@ export default class Hooks {
       return JSON.stringify(proxy, null, ' ')
     }
 
-    // иначе, если вызывается один из методов массива
-    else if (ignoredMethods.has(method.name)) {
-      // выполнить метод в контексте исходного массива      
+    // иначе, если вызывается один из игнорируемых методов массива
+    else if (ignoredMethods.has(method.name) && !proxy.hasOwnProperty(method.name)) {
+      // выполнить метод в контексте исходного массива
       method.apply(Hooks.target, args)
 
       // если имеются зависимости для родительского объекта
@@ -91,7 +91,7 @@ export default class Hooks {
     // иначе, если запрашиваемое свойство не является собственным
     else if (!target.hasOwnProperty(key)) {
       // если запрашивается метод "toString" или один из игнорируемых методов массива
-      if (key === 'toString' || Array.isArray(target) && ignoredMethods.has(key)) {
+      if (key === 'toString' || (Array.isArray(target) && ignoredMethods.has(key))) {
         // создать наблюдаемый прокси запрашиваемого метода
         return addObserver.call(this.#SERVICE.host, value)
       }

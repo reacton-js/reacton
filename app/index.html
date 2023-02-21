@@ -7,48 +7,72 @@
   <title>Reacton</title>
 </head>
 <body>
-  <!-- монтировать компонент Content -->
-  <r-content></r-content>
+  <!-- монтировать компонент Upper -->
+  <r-upper id="upper"></r-upper>
 
-  <!-- шаблон компонента Content -->
-  <template name="r-content">
-    <button :onclick="page = 'r-home'">Главная</button>
-    <button :onclick="page = 'r-about'">О нас</button>
+  <!-- шаблон компонента Upper -->
+  <template name="r-upper">
+    <h1>{{ name }}</h1>
 
-    <!-- элемент монтирования компонентов -->
-    <article $for="i = 0; i < 10; i++" :is="page">
-      <h2 slot="home">Главная</h2>
-      <h2 slot="about">О нас</h2>
-      <p>Содержимое {{ i }} по умолчанию для всех монтируемых компонентов...</p>
-    </article>
+    <!-- вывести массив цветов -->
+    <ul $for="col of colors">
+      <li>{{ col }}</li>
+    </ul>
+
+    <!-- монтировать компонент Middle -->
+    <r-middle id="middle"></r-middle>
 
     <script>
       exports = {
         data() {
           return {
-            page: 'r-home'
+            name: 'Upper',
+            colors: ['красный', 'зелёный', 'синий']
+          }
+        }
+      }
+    </script>
+  </template>
+
+  <!-- шаблон компонента Middle -->
+  <template name="r-middle">
+    <h2>{{ $parent.name }} > {{ name }}</h2>
+
+    <!-- монтировать компонент Lower -->
+    <r-lower id="lower"></r-lower>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            name: 'Middle'
           }
         }
       }
     </script>
   </template>
   
-  <!-- шаблон компонента Home -->
-  <template name="r-home" extends="article" mode="open">
-    <!-- слот для именованного содержимого -->
-    <slot name="home"></slot>
+  <!-- шаблон компонента Lower -->
+  <template name="r-lower">
+    <h3>{{ $parent.$parent.name }} > {{ $parent.name }} > {{ name }}</h3>
 
-    <!-- слот для содержимого по умолчанию -->
-    <slot></slot>
-  </template>
+    <!-- обратить массив цветов в компоненте Upper -->
+    <button :onclick="$parent.colors.reverse()">Обратить массив</button>
 
-  <!-- шаблон компонента About -->
-  <template name="r-about" extends="article" mode="open">
-    <!-- слот для именованного содержимого -->
-    <slot name="about"></slot>
+    <!-- вывести массив цветов из компонента Upper -->
+    <ul $for="col of $parent.colors">
+      <li>{{ col }}</li>
+    </ul>
 
-    <!-- слот для содержимого по умолчанию -->
-    <slot></slot>
+    <script>
+      exports = {
+        data() {
+          return {
+            name: 'Lower'
+          }
+        }
+      }
+    </script>
   </template>
   
   <!-- подключить библиотеку Reacton -->
@@ -56,7 +80,7 @@
 
   <script>
     // передать шаблоны компонентов в библиотеку Reacton
-    Reacton(...document.querySelectorAll('template'))
+    Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
 </html>
