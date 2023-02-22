@@ -25,7 +25,7 @@ const botList = [
 
 /* поиск ботов в строке
   search for bots in a string */
-const regBots = new RegExp('\\b' + botList.join('\\b|\\b') + '\\b' , 'i')
+const regBots = new RegExp('(\\b' + botList.join('\\b)|(\\b') + '\\b)' , 'i')
 
 app.get('/favicon.ico', (req, res) => res.sendStatus(204))
 
