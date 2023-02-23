@@ -7,84 +7,80 @@
   <title>Reacton</title>
 </head>
 <body>
-  <!-- монтировать компонент Upper -->
-  <r-upper id="upper"></r-upper>
+  <!-- монтировать компонент Router -->
+  <r-router></r-router>
 
-  <!-- монтировать компонент Lower -->
-  <r-lower id="lower"></r-lower>
+  <!-- монтировать компонент Content -->
+  <r-content></r-content>
 
-  <!-- шаблон компонента Upper -->
-  <template name="r-upper">
-    <h1>{{ name }}</h1>
-
-    <!-- вывести в цикле массив цветов -->
-    <ul $for="col of colors">
-      <li>{{ col }}</li>
-    </ul>
+  <!-- шаблон компонента Router -->
+  <template name="r-router">
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/about">О нас</a>
+      <a href="/contacts">Контакты</a>
+    </nav>
 
     <script>
       exports = {
-        data() {
-          return {
-            name: 'Upper',
-            colors: ['красный', 'зелёный', 'синий']
-          }
-        },
         async connected() {
-          // импортировать елемент события eventReverse
-          // const { eventReverse } = await import('./Events.js')
+          // получить елемент события eventPage
+          const eventPage = this.$mixins.eventPage
 
-          // получить елемент события eventReverse
-          const eventReverse = this.$mixins.eventReverse
+          // дождаться подключения компонента Content
+          await this.$when('r-content')
 
-          // добавить элементу eventReverse обработчик события "reverse-colors"
-          eventReverse.addEventListener('reverse-colors', () => {
-            this.colors.reverse() // обратить массив
-          })
-
-          // добавить элементу eventReverse обработчик события "new-colors"
-          eventReverse.addEventListener('new-colors', event => {
-            this.colors = event.detail // новый массив
+          // создать маршрутизатор для элемента NAV
+          this.$router(this.$('nav'), {
+            // вызвать событие "change-page" для элемента eventPage
+            '/': () => this.$event(eventPage, 'change-page', { detail: 'r-home' }),
+            '/about': () => this.$event(eventPage, 'change-page', { detail: 'r-about' }),
+            '/contacts': () => this.$event(eventPage, 'change-page', { detail: 'r-contacts' })
+          }, {
+            // дождаться подключения компонента Content
+            // when: 'r-content'
           })
         }
       }
     </script>
   </template>
-  
-  <!-- шаблон компонента Lower -->
-  <template name="r-lower">
-    <h3>{{ name }}</h3>
 
-    <button :onclick="reverseArray()">Обратить массив</button>
-
-    <button :onclick="newArray()">Новый массив</button>
+  <!-- шаблон компонента Content -->
+  <template name="r-content">
+    <!-- элемент монтирования компонентов -->
+    <article :is="page"></article>
 
     <script>
       exports = {
-        async data() {
-          // импортировать елемент события eventReverse
-          // const { eventReverse } = await import('./Events.js')
-
-          // получить елемент события eventReverse
-          const eventReverse = this.$mixins.eventReverse
-
+        data() {
           return {
-            name: 'Lower',
-            reverseArray() {
-              // вызвать событие "reverse-colors" для элемента eventReverse
-              this.$event(eventReverse, 'reverse-colors')
-            },
-            newArray() {
-              // вызвать событие "new-colors" для элемента eventReverse
-              this.$event(eventReverse, 'new-colors', {
-                // передать в обработчик события новый массив
-                detail: ['синий', 'оранжевый', 'фиолетовый', 'золотой']
-              })
-            }
+            page: '' // название компонента
           }
+        },
+        connected() {
+          // получить елемент события eventPage
+          const eventPage = this.$mixins.eventPage
+
+          // добавить элементу eventPage обработчик события "change-page"
+          eventPage.addEventListener('change-page', event => this.page = event.detail)
         }
       }
     </script>
+  </template>
+
+  <!-- шаблон компонента Home -->
+  <template name="r-home" extends="article">
+    <h1>Главная</h1>
+  </template>
+
+  <!-- шаблон компонента About -->
+  <template name="r-about" extends="article">
+    <h1>О нас</h1>
+  </template>
+
+  <!-- шаблон компонента Contacts -->
+  <template name="r-contacts" extends="article">
+    <h1>Контакты</h1>
   </template>
   
   <!-- подключить библиотеку Reacton -->
@@ -92,8 +88,8 @@
 
   <script>
     Reacton.mixins = {
-      // создать елемент события eventReverse
-      eventReverse: new Reacton.event()
+      // создать елемент события eventPage
+      eventPage: new Reacton.event()
     }
 
     // передать шаблоны компонентов в библиотеку Reacton

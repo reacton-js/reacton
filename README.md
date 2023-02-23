@@ -47,7 +47,7 @@ Below is an example of a simple single-file component:
 6. [Child components](#child-components)
 7. [Custom events](#custom-events)
 8. [Features work](#features-work)
-9. ~~[Router](#router)~~
+9. [Router](#router)
 10. ~~[Rendering](#rendering)~~
 
 <br>
@@ -99,7 +99,7 @@ Add an *index.html* file to the directory with the following content:
 </html>
 ```
 
-To ensure there are no naming conflicts between standard and custom HTML elements, the component name must contain a dash "-", for example, my-element and super-button are valid names, but myelement is not.
+To ensure there are no naming conflicts between standard and custom HTML elements, the component name must contain a dash «-», for example, my-element and super-button are valid names, but myelement is not.
 
 When you open the *index.html* file in the browser, the screen will display the message created in the Hello component:
 
@@ -687,7 +687,7 @@ You can read more about working with Web Components styles in their [application
 
 <br>
 
-To bind attributes to data, you must precede the attribute name with a colon character:
+To bind attributes to data, precede the attribute name with a colon character «:», as shown below:
 
 ```html
 <h1 :title="message">Hello, {{ message }}!</h1>
@@ -1644,6 +1644,701 @@ But the example below will result in an error:
 ```
 
 Since quick access, i.e. without the *this* keyword, have only all the special and custom properties and methods of the component.
+
+<br>
+<br>
+<h2 id="router">Router</h2>
+
+<br>
+
+The router in Reacton provides the basic required functionality for navigation to interact with application components. This functionality includes: query parameters, route parameters, regular expressions in route handler paths.
+
+The router is very easy to create.
+
+Make changes to the index.html file, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the Router component -->
+  <r-router></r-router>
+
+  <!-- Router component template -->
+  <template name="r-router">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contacts">Contacts</a>
+    </nav>
+
+    <!-- component mount element -->
+    <article :is="page"></article>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            page: '' // component name
+          }
+        },
+        connected() {
+          // create a router for the NAV element
+          this.$router(this.$('nav'), {
+            '/': () => this.page = 'r-home',
+            '/about': () => this.page = 'r-about',
+            '/contacts': () => this.page = 'r-contacts'
+          })
+        }
+      }
+    </script>
+  </template>
+
+  <!-- Home component template -->
+  <template name="r-home" extends="article">
+    <h1>Home</h1>
+  </template>
+
+  <!-- About component template -->
+  <template name="r-about" extends="article">
+    <h1>About</h1>
+  </template>
+
+  <!-- Contacts component template -->
+  <template name="r-contacts" extends="article">
+    <h1>Contacts</h1>
+  </template>
+  
+  <!-- include Reacton library -->
+  <script src="reacton.js"></script>
+
+  <script>
+    // pass the component templates to Reaction library
+    Reacton(...document.querySelectorAll('template[name]'))
+  </script>
+</body>
+</html>
+```
+
+There are four component templates defined here. Router is the main component in which the router is created and which contains the mount element of the other three components:
+
+```html
+<!-- component mount element -->
+<article :is="page"></article>
+```
+
+The other three component templates represent the application's Home, About, and Contacts pages:
+
+```html
+<!-- Home component template -->
+<template name="r-home" extends="article">
+  <h1>Home</h1>
+</template>
+
+<!-- About component template -->
+<template name="r-about" extends="article">
+  <h1>About</h1>
+</template>
+
+<!-- Contacts component template -->
+<template name="r-contacts" extends="article">
+  <h1>Contacts</h1>
+</template>
+```
+
+<br>
+
+The router is created in the **connected()** method so that it can bind to an HTML element such as the NAV element, as shown in the example below:
+
+```js
+connected() {
+  // create a router for the NAV element
+  this.$router(this.$('nav'), {
+    '/': () => this.page = 'r-home',
+    '/about': () => this.page = 'r-about',
+    '/contacts': () => this.page = 'r-contacts'
+  })
+}
+```
+
+The router cannot be created in the **data()** method, because at the time of its execution, the component does not yet have any HTML markup.
+
+The example below will result in an error:
+
+```js
+data() {
+  // create a router for the NAV element
+  this.$router(this.$('nav'), {
+    '/': () => this.page = 'r-home',
+    '/about': () => this.page = 'r-about',
+    '/contacts': () => this.page = 'r-contacts'
+  })
+  
+  return {
+    page: '' // component name
+  }
+}
+```
+
+<br>
+
+The router is created using the special **$router()** method, the first argument is the router binding HTML element:
+
+```js
+this.$('nav')
+```
+
+Such an element here is the NAV HTML element containing the links. It is selected using the special **$()** method. This method is passed an element selection selector. This method is a shorthand analog of the [querySelector()](https://javascript.info/searching-elements-dom#querySelector) method.
+
+The second argument to the **$router()** method is an object of paths and route handlers:
+
+```js
+{
+  '/': () => this.page = 'r-home',
+  '/about': () => this.page = 'r-about',
+  '/contacts': () => this.page = 'r-contacts'
+}
+```
+
+The names of the properties of this object are the tracked paths, and the values are the handlers of those paths. Inside the handlers, the **page** custom property is assigned the names of the components corresponding to the route being processed.
+
+The property names are strings that the router converts into [regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp). This allows you to use regular expression characters in the names of these properties.
+
+For example, the property name is below:
+
+```js
+'/about(-us)?': () => this.page = 'r-about'
+```
+
+will call the handler as for the route:
+
+```html
+<a href="/about">About</a>
+```
+
+and for the route:
+
+```html
+<a href="/about-us">About</a>
+```
+
+In this case, it is necessary to follow the rules for escaping in strings, i.e. precede special characters with a backslash «\».
+
+Add a new User component template to the *index.html* file:
+
+```html
+<!-- User component template -->
+<template name="r-user" extends="article">
+  <h1>User</h1>
+</template>
+```
+
+Remove the old links from the NAV element and add three new ones:
+
+```html
+<nav>
+  <a href="/users?id=1">User 1</a>
+  <a href="/users?id=2">User 2</a>
+  <a href="/users?id=3">User 3</a>
+</nav>
+```
+
+Delete the old handler properties and add a new handler property for their paths:
+
+```js
+this.$router(this.$('nav'), {
+  '/users\\?id=\\d': () => this.page = 'r-user'
+})
+```
+
+Clicking on any of the three links above will connect the User component.
+
+In the name of the handler property, before the special characters of the regular expression «?» and «d», two backslash characters «\» are specified instead of one, since we are dealing with strings, not regular expression literals.
+
+A regular expression literal would look like this:
+
+```js
+/users\?id=\d/
+```
+
+The router converts the property name into a regular expression by adding the border start symbol «^» to the beginning of this expression, and the characters of the optional last slash «/?» and the border end «$» to the end.
+
+The regular expression above, in the router, takes the following form:
+
+```js
+/^\/users\?id=\d\/?$/
+```
+
+The characters of the optional last slash «/?», allow you to use or omit the last slash in the link paths.
+
+The two links below are considered equivalent:
+
+```html
+<a href="/about">About</a>
+<a href="/about/">About</a>
+```
+
+<br>
+
+To access query parameters, such as the user **id** parameter, the router uses an object of the built-in [URL](https://javascript.info/url) class, which is available as a **url** property, from the *event* handler parameter.
+
+Add this parameter to the path handler:
+
+```js
+this.$router(this.$('nav'), {
+  '/users\\?id=\\d': event => {
+    this.page = 'r-user'
+    // set the "id" property to the value of the request parameter
+    this.id = event.url.searchParams.get('id')
+  }
+})
+```
+
+The [searchParams](https://javascript.info/url#searchparams) property and the **get()** method are provided by the URL class itself. An instance of it is simply added to the *event* parameter. There are other methods for working with parameters.
+
+In order to pass the user **id** to the User component, you need to add a [Shadow DOM](https://javascript.info/shadow-dom) to that component using the ***mode*** attribute in its template, and a [SLOT](https://javascript.info/slots-composition) element, as shown below:
+
+```html
+<!-- User component template -->
+<template name="r-user" extends="article" mode="open">
+  <h1>User</h1>
+  <slot></slot>
+</template>
+```
+
+In the Router component, add a new custom **id** property:
+
+```js
+data() {
+  return {
+    page: '', // component name
+    id: '' // user id
+  }
+}
+```
+
+The last thing left to do is add this property to the component mount element expression:
+
+```html
+<!-- component mount element -->
+<article :is="page">
+  {{ id }}
+</article>
+```
+
+Now the request parameter will be assigned to this property in the path handler:
+
+```js
+this.id = event.url.searchParams.get('id')
+```
+
+and passed to the slot of the User component:
+
+```html
+<slot></slot>
+```
+
+<br>
+
+In addition to the request parameters that we discussed above, the router provides the ability to work with [route parameters](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes#route_parameters).
+
+
+Modify the User component template by adding two named slots to it:
+
+```html
+<!-- User component template -->
+<template name="r-user" extends="article" mode="open">
+  <h1>
+    <slot name="user"></slot>
+    <slot name="id"></slot>
+  </h1>
+</template>
+```
+
+Add a new user property **user** to the data object of the Router component:
+
+```js
+data() {
+  return {
+    page: '', // component name
+    user: '', // user
+    id: '' // user id
+  }
+}
+```
+
+Make changes to the component mount element:
+
+```html
+<!-- component mount element -->
+<article :is="page">
+  <span slot="user">{{ user }}</span>
+  <span slot="id">{{ id }}</span>
+</article>
+```
+
+Delete the old ones and add two new links in the NAV element:
+
+```html
+<nav>
+  <a href="/designer/1">Designer 1</a>
+  <a href="/programmer/2">Programmer 2</a>
+</nav>
+```
+
+Create a new path handler for these links:
+
+```js
+this.$router(this.$('nav'), {
+  '/:user/:id': event => {
+    this.page = 'r-user'
+
+    // set the "user" property to the value of the route parameter
+    switch (event.params.user) {
+      case 'designer':
+        this.user = 'Designer'
+        break;
+      case 'programmer':
+        this.user = 'Programmer'
+        break;
+      default:
+        this.user = 'In search'
+        break;
+    }
+
+    // set the "id" property to the value of the route parameter
+    this.id = event.params.id
+  }
+})
+```
+Route parameters are defined in the name of the handler property using a colon character «:» followed by characters: A-Za-z0-9_
+
+In the example above, we have defined two route parameters: **user** and **id**, as shown below:
+
+```js
+'/:user/:id'
+```
+
+which are assigned to custom properties of the same name in the handler.
+
+These parameters can be accessed using the **params** property, the path handler's [event](https://javascript.info/introduction-browser-events#event-object) object:
+
+```js
+'/:user/:id': event => {...
+  this.id = event.params.id
+```
+
+In the component mount element, two SPAN elements are created with ***slot*** attributes:
+
+```html
+<span slot="user">{{ user }}</span>
+<span slot="id">{{ id }}</span>
+```
+
+which contain the names of the named slots in the User component:
+
+```html
+<slot name="user"></slot>
+<slot name="id"></slot>
+```
+
+These slots will be passed expressions containing custom properties **user** and **id** from the mount element of the Router component:
+
+```html
+{{ user }}
+{{ id }}
+```
+
+<br>
+
+In the last argument of the **$router()** method, an additional object with five parameters can be passed to the router.
+
+The **once**, **capture**, and **passive** parameters will be passed to the [addEventListener()](https://javascript.info/introduction-browser-events#addeventlistener) method, which assigns the NAV element (or any other HTML element that the router binds to) a *"click"* event handler, like so:
+
+```js
+this.$router(this.$('nav'), {
+  '/': () => this.page = 'r-home',
+  '/about': () => this.page = 'r-about',
+  '/contacts': () => this.page = 'r-contacts'
+}, {
+  // remove the "click" event handler after the first execution
+  once: true,
+  // handle the "click" event in the dive phase
+  capture: true,
+  // handler will never call preventDefault()
+  passive: true
+})
+```
+
+The next parameter is called **start** and allows you to pause automatic path processing when the router starts. The router will start processing them only after following the links.
+
+By default, this parameter is set to True, but this can be easily changed:
+
+```js
+{
+  // do not parse paths when starting the router
+  start: false
+}
+```
+
+The last parameter transmitted is called **when**. It can be assigned the name of the component, before connecting to the document of which, the router will not process paths.
+
+This option is used when the router and the mount element are in different components.
+
+<br>
+
+Let's modify the original example and place the router and mount element on separate components.
+
+Make changes to the *index.html* file, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the Router component -->
+  <r-router></r-router>
+
+  <!-- mount the Content component -->
+  <r-content></r-content>
+
+  <!-- Router component template -->
+  <template name="r-router">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contacts">Contacts</a>
+    </nav>
+
+    <script>
+      exports = {
+        connected() {
+          // get event element eventPage
+          const eventPage = this.$mixins.eventPage
+
+          // create a router for the NAV element
+          this.$router(this.$('nav'), {
+            // trigger "change-page" event on element eventPage
+            '/': () => this.$event(eventPage, 'change-page', { detail: 'r-home' }),
+            '/about': () => this.$event(eventPage, 'change-page', { detail: 'r-about' }),
+            '/contacts': () => this.$event(eventPage, 'change-page', { detail: 'r-contacts' })
+          }, {
+            // wait for the connection of the Content component
+            when: 'r-content'
+          })
+        }
+      }
+    </script>
+  </template>
+
+  <!-- Content component template -->
+  <template name="r-content">
+    <!-- component mount element -->
+    <article :is="page"></article>
+
+    <script>
+      exports = {
+        data() {
+          return {
+            page: '' // component name
+          }
+        },
+        connected() {
+          // get event element eventPage
+          const eventPage = this.$mixins.eventPage
+
+          // add the "change-page" event handler to the eventPage element
+          eventPage.addEventListener('change-page', event => this.page = event.detail)
+        }
+      }
+    </script>
+  </template>
+
+  <!-- Home component template -->
+  <template name="r-home" extends="article">
+    <h1>Home</h1>
+  </template>
+
+  <!-- About component template -->
+  <template name="r-about" extends="article">
+    <h1>About</h1>
+  </template>
+
+  <!-- Contacts component template -->
+  <template name="r-contacts" extends="article">
+    <h1>Contacts</h1>
+  </template>
+  
+  <!-- include Reacton library -->
+  <script src="reacton.js"></script>
+
+  <script>
+    Reacton.mixins = {
+      // create event element eventPage
+      eventPage: new Reacton.event()
+    }
+
+    // pass the component templates to Reaction library
+    Reacton(...document.querySelectorAll('template[name]'))
+  </script>
+</body>
+</html>
+```
+
+Here, a new Content component has been added, inside which is the component mount element:
+
+```html
+<!-- Content component template -->
+<template name="r-content">
+  <!-- component mount element -->
+  <article :is="page"></article>
+
+  <script>
+    exports = {
+      data() {
+        return {
+          page: '' // component name
+        }
+      },
+      connected() {
+        // get event element eventPage
+        const eventPage = this.$mixins.eventPage
+
+        // add the "change-page" event handler to the eventPage element
+        eventPage.addEventListener('change-page', event => this.page = event.detail)
+      }
+    }
+  </script>
+</template>
+```
+
+Changing the value of the custom **page** property occurs in the **connected()** method, as shown below:
+
+```js
+connected() {
+  // get event element eventPage
+  const eventPage = this.$mixins.eventPage
+
+  // add the "change-page" event handler to the eventPage element
+  eventPage.addEventListener('change-page', event => this.page = event.detail)
+}
+```
+
+[Custom events](#custom-events) are used to communicate between different components.
+
+The Router component object also uses the **connected()** method:
+
+```js
+exports = {
+  connected() {
+    // get event element eventPage
+    const eventPage = this.$mixins.eventPage
+
+    // create a router for the NAV element
+    this.$router(this.$('nav'), {
+      // trigger "change-page" event on element eventPage
+      '/': () => this.$event(eventPage, 'change-page', { detail: 'r-home' }),
+      '/about': () => this.$event(eventPage, 'change-page', { detail: 'r-about' }),
+      '/contacts': () => this.$event(eventPage, 'change-page', { detail: 'r-contacts' })
+    }, {
+      // wait for the connection of the Content component
+      when: 'r-content'
+    })
+  }
+}
+```
+
+which, like the Content component, get event element eventPage:
+
+```js
+// get event element eventPage
+const eventPage = this.$mixins.eventPage
+```
+
+from global mixin:
+
+```js
+Reacton.mixins = {
+  // create event element eventPage
+  eventPage: new Reacton.event()
+}
+```
+
+When any path changes, one of the handlers is triggered:
+
+```js
+// trigger "change-page" event on element eventPage
+'/': () => this.$event(eventPage, 'change-page', { detail: 'r-home' }),
+'/about': () => this.$event(eventPage, 'change-page', { detail: 'r-about' }),
+'/contacts': () => this.$event(eventPage, 'change-page', { detail: 'r-contacts' })
+```
+
+which passes to the custom event handler *"change-page"* of the event element eventPage, the **detail** property with the name of the mounted component.
+
+In the Content component, the *"change-page"* custom event handler sets this value to the **page** custom property, as shown below:
+
+```js
+// add the "change-page" event handler to the eventPage element
+eventPage.addEventListener('change-page', event => this.page = event.detail)
+```
+
+Pay attention to the **when** parameter of the router in the Router component:
+
+```js
+{
+  // wait for the connection of the Content component
+  when: 'r-content'
+}
+```
+
+If you do not pass this parameter, then the component will not be mounted when the browser is opened, and the router will start processing paths only after following the links.
+
+This is because the router in the Router component fires the *"change-page"* event before a handler is added for it in the Content component, because the Router component connects to the document before the Content component.
+
+In order for the router to wait for the connection of some component, it needs to pass this parameter in the third argument as a property of the object, with the name of the expected component:
+
+```js
+when: 'r-content'
+```
+
+Instead of the **when** parameter, you can use the special **$when()** method. The **connected()** method must be asynchronous, as shown below:
+
+```js
+async connected() {
+  // get event element eventPage
+  const eventPage = this.$mixins.eventPage
+
+  // wait for the connection of the Content component
+  await this.$when('r-content')
+
+  // create a router for the NAV element
+  this.$router(this.$('nav'), {
+    // trigger "change-page" event on element eventPage
+    '/': () => this.$event(eventPage, 'change-page', { detail: 'r-home' }),
+    '/about': () => this.$event(eventPage, 'change-page', { detail: 'r-about' }),
+    '/contacts': () => this.$event(eventPage, 'change-page', { detail: 'r-contacts' })
+  })
+}
+```
+
+Then there is no need to pass the **when** parameter to the router.
+
+In any case, both the **when** parameter and the **$when()** special method only wait for the first component with the name passed to it to be connected to the document.
+
+If we had ten Content components, then the router would only fire after the first component with the name "r-content" connected to the document, and not after each with that name.
+
+To create most applications, one event firing is enough, after connecting a single main component containing the main content to the document.
 
 <br>
 <br>
