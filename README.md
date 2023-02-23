@@ -48,7 +48,7 @@ Below is an example of a simple single-file component:
 7. [Custom events](#custom-events)
 8. [Features work](#features-work)
 9. [Router](#router)
-10. ~~[Rendering](#rendering)~~
+10. [Rendering](#rendering)
 
 <br>
 <hr>
@@ -2339,6 +2339,490 @@ In any case, both the **when** parameter and the **$when()** special method only
 If we had ten Content components, then the router would only fire after the first component with the name "r-content" connected to the document, and not after each with that name.
 
 To create most applications, one event firing is enough, after connecting a single main component containing the main content to the document.
+
+<br>
+<br>
+<h2 id="rendering">Rendering</h2>
+
+<br>
+
+Download the directory with the working [server](https://github.com/reacton-js/reacton/tree/main/server). This directory contains configuration files for the [Webpack](https://webpack.js.org/) module builder and [Express](https://expressjs.com/), a web application framework for [Node.js](https://nodejs.org/en/).
+
+You need to have an understanding of how these technologies work, as their discussion is beyond the scope of this guide.
+
+To install all dependencies, use the command:
+
+```
+npm i
+```
+
+To develop a project in Webpack, use the command:
+
+```
+npm start
+```
+
+To build a project in Webpack, use the command:
+
+```
+npm run build
+```
+
+To start the server in working mode, use the command:
+
+```
+node server
+```
+
+To start the server in bot mode, use the command:
+
+```
+node server bot
+```
+
+<br>
+
+When Webpack is launched to develop an application, the Express server is also launched at the same time, allowing you to make requests to the real server during development.
+
+In the *webpack.config.js* configuration file, the **proxy** property is used for this, as shown below:
+
+```js
+devServer: {
+  ...
+  proxy: {
+    '/': `http://localhost:${process.env.PORT || 3000}`,
+  },
+},
+```
+
+<br>
+
+The database is located in the *DB.json* file and contains a list of users:
+
+```js
+[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "age": 28,
+    "category": "managers",
+    "email": "Sincere@april.biz",
+    "city": "Gwenborough"
+  },
+  {
+    "id": 2,
+    "name": "Ervin Howell",
+    "age": 32,
+    "category": "designers",
+    "email": "Shanna@melissa.tv",
+    "city": "Wisokyburgh"
+  },
+  ...
+]
+```
+
+<br>
+
+The list of bots is located in the *bots.js* file and can be updated with new bots:
+
+```js
+module.exports = [
+  // Yandex
+  'YandexBot', 'YandexAccessibilityBot', 'YandexMobileBot',...
+  // Google
+  'Googlebot', 'Googlebot-Image', 'Mediapartners-Google',...
+  // Other
+  'Mail.RU_Bot', 'bingbot', 'Accoona', 'Lighthouse',...
+]
+```
+
+<br>
+
+The server configuration file is located in the *server.js* file:
+
+```js
+const express = require("express")
+const hbs = require("hbs")
+const { readFile } = require('fs/promises')
+const { JSDOM } = require("jsdom")
+...
+```
+
+<br>
+
+To render the application content, the server uses the [JSDOM](https://www.npmjs.com/package/jsdom) implementation and the **render()** method of the Reacton library, as shown below:
+
+```js
+/* вернуть отрендеренное HTML-содержимое элемента BODY
+  return the rendered HTML content of the BODY element */
+return await new Promise(done => {
+  dom.window.onload = () => dom.window.Reacton.render(dom.window.document.body).then(done)
+})
+```
+
+This method can take one argument, which is the topmost element of the document from which to render application content. By default, when no argument is passed, the entire document is rendered.
+
+In the example above, rendering starts from the BODY element, which corresponds to the content rendering logic in the [Hbs](https://github.com/pillarjs/hbs) engine [view templates](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website):
+
+```js
+/* если запрос идёт от поискового бота
+  if the request comes from a search bot */
+if (regBots.test(userAgent)) {
+  /* получить полный адрес запроса
+    get full request address */
+  const fullURL = req.protocol + "://" + req.hostname + `${port ? `:${port}` : ''}` + req.originalUrl
+
+  const HTML = await readFile(__dirname + '/views/partials/Body.hbs')
+    .then(async data => {
+      /* определить новый JSDOM с параметрами
+        define a new JSDOM with parameters */
+      const dom = new JSDOM(data.toString(), {
+        url: fullURL,
+        runScripts: "dangerously",
+        resources: "usable"
+      })
+      
+      /* вернуть отрендеренное HTML-содержимое элемента BODY
+        return the rendered HTML content of the BODY element */
+      return await new Promise(done => {
+        dom.window.onload = () => dom.window.Reacton.render(dom.window.document.body).then(done)
+      })
+    })
+
+  /* передать свойство HTML в представление Main
+    pass HTML property to Main view */
+  res.render("Main.hbs", { HTML })
+}
+
+/* иначе, если запрос идёт от пользователя
+  otherwise, if the request comes from the user */
+else {
+  /* вернуть частичное представление Body из представления Main
+    return partial view of Body from view of Main */
+  res.render("Main.hbs")
+}
+```
+
+<br>
+
+When accessing the site of any bot from the list in the *bots.js* file, the server will return the document content rendered using the **render()** method to the **HTML** property of the Main view:
+
+```hbs
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+  {{#if HTML}}
+    {{{HTML}}}
+  {{else}}
+    {{> Body}}
+  {{/if}}
+</html>
+```
+
+In all other cases, i.e. when the user accesses the site, the Main view returns a partial Body view:
+
+```hbs
+<body>
+  <header is="r-header"></header>
+  <main is="r-main"></main>
+  <footer is="r-footer"></footer>
+
+  <script src="/bundle.js"></script>
+</body>
+```
+
+The content rendered for bots does not contain comments, styles, scripts and TEMPLATE elements.
+
+You can check the server in bot mode using the command:
+
+```
+node server bot
+```
+
+and you can see the content that the bot receives from the server by opening the page using the key combination Ctrl + U
+
+<br>
+
+The *public* folder inside the *server* directory is used to store static files: images, styles, fonts, etc.
+
+The finished project will be assembled into this folder in the form of a *bundle.js* file when the command is executed:
+
+```
+npm run build
+```
+
+<br>
+
+The project itself is located in the *src* folder and is launched for development by the command:
+
+```
+npm start
+```
+
+<br>
+
+The project is a simple application that displays a list of users by profession and an individual user, with additional information about him.
+
+The main project file is named *index.js*:
+
+```js
+import './reacton.js'
+import Header from './components/Header.htm'
+import Main from './components/Main.htm'
+import Home from './components/pages/Home.htm'
+import Categories from './components/pages/Categories.htm'
+import List from './components/pages/List.htm'
+import Worker from './components/pages/Worker.htm'
+import Footer from './components/Footer.htm'
+
+const routeEvents = new Reacton.event()
+
+Reacton.mixins = {
+  routeEvents,
+  getJSON(path) {
+    return new Promise(done => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', path)
+      xhr.responseType = 'json'
+      xhr.send()
+      xhr.onload = () => done(xhr.response)
+    })
+  }
+}
+
+Reacton.router(document, {
+  '/': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-home' } })
+  },
+  '/categories': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-categories' } })
+  },
+  '/categories/:category/:id?': event => {
+    if (event.params.id) {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          id: event.params.id,
+          page: 'r-worker'
+        }
+      })
+    }
+    else {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          page: 'r-list'
+        }
+      })
+    }
+  }
+}, {
+  when: 'r-main'
+})
+
+Reacton([Header, Main, Home, Categories, List, Worker, Footer])
+```
+
+<br>
+
+At the very beginning of this file, the Reacton library and the files of all components used in the project are connected:
+
+```js
+import './reacton.js'
+import Header from './components/Header.htm'
+import Main from './components/Main.htm'
+import Home from './components/pages/Home.htm'
+import Categories from './components/pages/Categories.htm'
+import List from './components/pages/List.htm'
+import Worker from './components/pages/Worker.htm'
+import Footer from './components/Footer.htm'
+```
+
+Note that the components are passed to the Reacton function in an array:
+
+```js
+Reacton([Header, Main, Home, Categories, List, Worker, Footer])
+```
+
+This feature was specifically added to Reacton to get text components when building apps with Webpack.
+
+<br>
+
+Then the routeEvents event element and the **getJSON()** method are defined and passed to the global mixin:
+
+```js
+const routeEvents = new Reacton.event()
+
+Reacton.mixins = {
+  routeEvents,
+  getJSON(path) {
+    return new Promise(done => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', path)
+      xhr.responseType = 'json'
+      xhr.send()
+      xhr.onload = () => done(xhr.response)
+    })
+  }
+}
+```
+
+At the moment, the [Fetch](https://javascript.info/fetch) method does not work in JSDOM. Therefore, the **getJSON()** helper method is used with an [XMLHttpRequest](https://javascript.info/xmlhttprequest) object.
+
+<br>
+
+This method makes a request to the server and returns various data.
+
+If the request was made from a List component:
+
+```js
+exports = {
+  async data() {
+    const users = await this.$mixins.getJSON(`/categories/${this.$parent.category}`)
+
+    const collator = new Intl.Collator()
+
+    const userSort = function (ascending, group) {
+      this.users.sort((a, b) => ascending ? collator.compare(a[group], b[group]) : collator.compare(b[group], a[group]))
+    }
+    
+    return {
+      users,
+      group: 'id',
+      ascending: true,
+      userSort
+    }
+  }
+}
+```
+
+then the server will return users with a certain category:
+
+```js
+/* вернуть категорию работников из базы данных
+  return the category of workers from the database */
+app.post('/categories/:category', (req, res) => {
+  const category = DB.filter(item => item.category == req.params.category)
+  res.send(category)
+})
+```
+
+If the request was made from a Worker component:
+
+```js
+exports = {
+  async data() {
+    return {
+      user: await this.$mixins.getJSON(`/categories/${this.$parent.category}/${this.$parent.id}`)
+    }
+  }
+}
+```
+
+then the server returns the data of a specific user:
+
+```js
+/* вернуть id работника из базы данных
+  return employee id from database */
+app.post('/categories/\\w+/:id', (req, res) => {
+  const user = DB.find(item => item.id == req.params.id)
+  res.send(user)
+})
+```
+
+<br>
+
+Next comes the router definition, bound to the [document](https://developer.mozilla.org/en-US/docs/Web/API/Document) object, as shown below:
+
+```js
+Reacton.router(document, {
+  '/': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-home' } })
+  },
+  '/categories': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-categories' } })
+  },
+  '/categories/:category/:id?': event => {
+    if (event.params.id) {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          id: event.params.id,
+          page: 'r-worker'
+        }
+      })
+    }
+    else {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          page: 'r-list'
+        }
+      })
+    }
+  }
+}, {
+  when: 'r-main'
+})
+```
+
+This allows you to create any number of menus in any component, and handle path events in one place.
+
+In the application, the main menu is located in the Header component:
+
+```html
+<nav>
+  <a href="/">Home</a>
+  <a href="/categories/">Categories</a>
+</nav>
+```
+
+But due to the fact that the router was bound to the *document* object, this menu could be placed both in the footer and in any other component.
+
+In addition, the router has a **when** parameter with the value "r-main". This forces it to wait for the Main component to connect to the document, and only after that, the router will start executing the handlers corresponding to the current path, i.e. the address where the application is opened.
+
+<br>
+
+All page components: Home, Categories, Worker and List, are mounted in the Main component using a mount element with the ***is*** attribute, which is bound to the **page** custom property:
+
+```html
+<article :is="page"></article>
+```
+
+To pass data from the router to the Main component, use the routeEvents event element, with a custom *"page-change"* event, as shown below:
+
+```js
+exports = {
+  data() {
+    return {
+      page: '',
+      category: '',
+      id: ''
+    }
+  },
+  connected() {
+    const routeEvents = this.$mixins.routeEvents
+
+    routeEvents.addEventListener('page-change', event => {
+      if (event.detail.category) {
+        this.category = event.detail.category
+      }
+      if (event.detail.id) {
+        this.id = event.detail.id
+      }
+      this.page = event.detail.page
+    })
+  }
+}
+```
+
+All other components are simple and do not require further explanation.
 
 <br>
 <br>

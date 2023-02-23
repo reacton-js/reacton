@@ -48,7 +48,7 @@ Reacton - это JavaScript-библиотека для создания при�
 7. [Пользовательские события](#custom-events)
 8. [Особенности работы](#features-work)
 9. [Маршрутизатор](#router)
-10. ~~[Рендеринг](#rendering)~~
+10. [Рендеринг](#rendering)
 
 <br>
 <hr>
@@ -2340,6 +2340,490 @@ async connected() {
 Если бы у нас было десять компонентов Content, то маршрутизатор сработал бы лишь после первого подключенного к документу компонента с названием "r-content", а не после каждого с таким названием.
 
 Для создания большинства приложений хватает и одного срабатывания события, после подключения к документу одного единственного главного компонента, содержащего основной контент.
+
+<br>
+<br>
+<h2 id="rendering">Рендеринг</h2>
+
+<br>
+
+Скачайте каталог с рабочим [сервером](https://github.com/reacton-js/reacton/tree/main/server). Этот каталог содержит конфигурационные файлы для сборщика модулей  [Webpack](https://webpack.js.org/) и [Express](https://expressjs.com/) - фреймворка web-приложений для [Node.js](https://nodejs.org/ru/).
+
+Вам необходимо иметь понимание о работе этих технологий, поскольку их обсуждение выходит за рамки данного руководства.
+
+Для установки всех зависимостей, используется команда:
+
+```
+npm i
+```
+
+Для разработки проекта в Webpack, используется команда:
+
+```
+npm start
+```
+
+Для сборки проекта в Webpack, используется команда:
+
+```
+npm run build
+```
+
+Для запуска сервера в рабочем режиме, используется команда:
+
+```
+node server
+```
+
+Для запуска сервера в режиме бота, используется команда:
+
+```
+node server bot
+```
+
+<br>
+
+Когда Webpack запускается для разработки приложения, одновременно с ним запускается и сервер Express, что позволяет во время разработки делать запросы к реальному серверу.
+
+В конфигурационном файле *webpack.config.js* для этого применяется свойство **proxy**, как показано ниже:
+
+```js
+devServer: {
+  ...
+  proxy: {
+    '/': `http://localhost:${process.env.PORT || 3000}`,
+  },
+},
+```
+
+<br>
+
+База данных расположена в файле *DB.json* и содержит список пользователей:
+
+```js
+[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "age": 28,
+    "category": "managers",
+    "email": "Sincere@april.biz",
+    "city": "Gwenborough"
+  },
+  {
+    "id": 2,
+    "name": "Ervin Howell",
+    "age": 32,
+    "category": "designers",
+    "email": "Shanna@melissa.tv",
+    "city": "Wisokyburgh"
+  },
+  ...
+]
+```
+
+<br>
+
+Список ботов расположен в файле *bots.js* и его можно пополнять новыми ботами:
+
+```js
+module.exports = [
+  // Yandex
+  'YandexBot', 'YandexAccessibilityBot', 'YandexMobileBot',...
+  // Google
+  'Googlebot', 'Googlebot-Image', 'Mediapartners-Google',...
+  // Other
+  'Mail.RU_Bot', 'bingbot', 'Accoona', 'Lighthouse',...
+]
+```
+
+<br>
+
+Конфигурационный файл сервера расположен в файле *server.js*:
+
+```js
+const express = require("express")
+const hbs = require("hbs")
+const { readFile } = require('fs/promises')
+const { JSDOM } = require("jsdom")
+...
+```
+
+<br>
+
+Для рендеринга содержимого приложения, сервер использует реализацию [JSDOM](https://www.npmjs.com/package/jsdom) и метод **render()** библиотеки Reacton, как показано ниже:
+
+```js
+/* вернуть отрендеренное HTML-содержимое элемента BODY
+  return the rendered HTML content of the BODY element */
+return await new Promise(done => {
+  dom.window.onload = () => dom.window.Reacton.render(dom.window.document.body).then(done)
+})
+```
+
+Данный метод может принимать один аргумент, который является самым верхним элементом документа, с которого необходимо выполнить рендеринг содержимого приложения. По умолчанию, когда аргумент не передаётся, рендерится весь документ целиком.
+
+В примере выше, рендеринг начинается с элемента BODY, что соответствует логике вывода содержимого в [шаблонах представлений](https://developer.mozilla.org/ru/docs/Learn/Server-side/Express_Nodejs/skeleton_website) движка [Hbs](https://github.com/pillarjs/hbs):
+
+```js
+/* если запрос идёт от поискового бота
+  if the request comes from a search bot */
+if (regBots.test(userAgent)) {
+  /* получить полный адрес запроса
+    get full request address */
+  const fullURL = req.protocol + "://" + req.hostname + `${port ? `:${port}` : ''}` + req.originalUrl
+
+  const HTML = await readFile(__dirname + '/views/partials/Body.hbs')
+    .then(async data => {
+      /* определить новый JSDOM с параметрами
+        define a new JSDOM with parameters */
+      const dom = new JSDOM(data.toString(), {
+        url: fullURL,
+        runScripts: "dangerously",
+        resources: "usable"
+      })
+      
+      /* вернуть отрендеренное HTML-содержимое элемента BODY
+        return the rendered HTML content of the BODY element */
+      return await new Promise(done => {
+        dom.window.onload = () => dom.window.Reacton.render(dom.window.document.body).then(done)
+      })
+    })
+
+  /* передать свойство HTML в представление Main
+    pass HTML property to Main view */
+  res.render("Main.hbs", { HTML })
+}
+
+/* иначе, если запрос идёт от пользователя
+  otherwise, if the request comes from the user */
+else {
+  /* вернуть частичное представление Body из представления Main
+    return partial view of Body from view of Main */
+  res.render("Main.hbs")
+}
+```
+
+<br>
+
+При обращении к сайту любого бота из списка в файле *bots.js*, сервер вернёт отрендеренное с помощью метода **render()** содержимое документа в свойство **HTML** представления Main:
+
+```hbs
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+  {{#if HTML}}
+    {{{HTML}}}
+  {{else}}
+    {{> Body}}
+  {{/if}}
+</html>
+```
+
+Во всех других случаях, т.е. когда к сайту обращается пользователь, представление Main возвращает частичное представление Body:
+
+```hbs
+<body>
+  <header is="r-header"></header>
+  <main is="r-main"></main>
+  <footer is="r-footer"></footer>
+
+  <script src="/bundle.js"></script>
+</body>
+```
+
+Отрендеренное для ботов содержимое не содержит комментариев, стилей, скриптов и элементов TEMPLATE.
+
+Проверить сервер в режиме бота можно с помощью команды:
+
+```
+node server bot
+```
+
+а посмотреть содержимое, которое бот получает от сервера, можно открыв страницу с помощью комбинации клавиш Ctrl + U
+
+<br>
+
+Папка *public* внутри каталога *server*, используется для хранения статических файлов: изображений, стилей, шрифтов и т.д.
+
+В эту папку будет собран готовый проект в виде файла *bundle.js*, при выполнении команды:
+
+```
+npm run build
+```
+
+<br>
+
+Сам проект располагается в папке *src* и для разработки запускается командой:
+
+```
+npm start
+```
+
+<br>
+
+Проект представляет из себя простое приложение с выводом списка пользователей по профессиям и отдельного пользователя, с дополнительной информацией о нём.
+
+Главный файл проекта называется *index.js*:
+
+```js
+import './reacton.js'
+import Header from './components/Header.htm'
+import Main from './components/Main.htm'
+import Home from './components/pages/Home.htm'
+import Categories from './components/pages/Categories.htm'
+import List from './components/pages/List.htm'
+import Worker from './components/pages/Worker.htm'
+import Footer from './components/Footer.htm'
+
+const routeEvents = new Reacton.event()
+
+Reacton.mixins = {
+  routeEvents,
+  getJSON(path) {
+    return new Promise(done => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', path)
+      xhr.responseType = 'json'
+      xhr.send()
+      xhr.onload = () => done(xhr.response)
+    })
+  }
+}
+
+Reacton.router(document, {
+  '/': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-home' } })
+  },
+  '/categories': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-categories' } })
+  },
+  '/categories/:category/:id?': event => {
+    if (event.params.id) {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          id: event.params.id,
+          page: 'r-worker'
+        }
+      })
+    }
+    else {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          page: 'r-list'
+        }
+      })
+    }
+  }
+}, {
+  when: 'r-main'
+})
+
+Reacton([Header, Main, Home, Categories, List, Worker, Footer])
+```
+
+<br>
+
+В самом начале этого файла подключается библиотека Reacton и файлы всех используемых в проекте компонентов:
+
+```js
+import './reacton.js'
+import Header from './components/Header.htm'
+import Main from './components/Main.htm'
+import Home from './components/pages/Home.htm'
+import Categories from './components/pages/Categories.htm'
+import List from './components/pages/List.htm'
+import Worker from './components/pages/Worker.htm'
+import Footer from './components/Footer.htm'
+```
+
+Обратите внимание, что компоненты передаются функции Reacton в массиве:
+
+```js
+Reacton([Header, Main, Home, Categories, List, Worker, Footer])
+```
+
+Эта возможность была специально добавлена в Reacton, для получения текстовых компонентов при создании приложений с помощью Webpack.
+
+<br>
+
+Затем определяется элемент события routeEvents и метод **getJSON()**, которые передаются в глобальную примесь:
+
+```js
+const routeEvents = new Reacton.event()
+
+Reacton.mixins = {
+  routeEvents,
+  getJSON(path) {
+    return new Promise(done => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', path)
+      xhr.responseType = 'json'
+      xhr.send()
+      xhr.onload = () => done(xhr.response)
+    })
+  }
+}
+```
+
+На данный момент, метод [Fetch](https://learn.javascript.ru/fetch) не работает в JSDOM. Поэтому используется вспомогательный метод **getJSON()** с объектом [XMLHttpRequest](https://learn.javascript.ru/xmlhttprequest).
+
+<br>
+
+Данный метод делает запрос к серверу и возвращает различные данные.
+
+Если запрос был сделан из компонента List:
+
+```js
+exports = {
+  async data() {
+    const users = await this.$mixins.getJSON(`/categories/${this.$parent.category}`)
+
+    const collator = new Intl.Collator()
+
+    const userSort = function (ascending, group) {
+      this.users.sort((a, b) => ascending ? collator.compare(a[group], b[group]) : collator.compare(b[group], a[group]))
+    }
+    
+    return {
+      users,
+      group: 'id',
+      ascending: true,
+      userSort
+    }
+  }
+}
+```
+
+то сервер вернёт пользователей с определённой категорией:
+
+```js
+/* вернуть категорию работников из базы данных
+  return the category of workers from the database */
+app.post('/categories/:category', (req, res) => {
+  const category = DB.filter(item => item.category == req.params.category)
+  res.send(category)
+})
+```
+
+А если запрос был сделан из компонента Worker:
+
+```js
+exports = {
+  async data() {
+    return {
+      user: await this.$mixins.getJSON(`/categories/${this.$parent.category}/${this.$parent.id}`)
+    }
+  }
+}
+```
+
+то сервер возвращает данные конкретного пользователя:
+
+```js
+/* вернуть id работника из базы данных
+  return employee id from database */
+app.post('/categories/\\w+/:id', (req, res) => {
+  const user = DB.find(item => item.id == req.params.id)
+  res.send(user)
+})
+```
+
+<br>
+
+Далее идёт определение маршрутизатора с привязкой к объекту [document](https://developer.mozilla.org/ru/docs/Web/API/Document), как показано ниже:
+
+```js
+Reacton.router(document, {
+  '/': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-home' } })
+  },
+  '/categories': () => {
+    Reacton.event(routeEvents, 'page-change', { detail: { page: 'r-categories' } })
+  },
+  '/categories/:category/:id?': event => {
+    if (event.params.id) {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          id: event.params.id,
+          page: 'r-worker'
+        }
+      })
+    }
+    else {
+      Reacton.event(routeEvents, 'page-change', {
+        detail: {
+          category: event.params.category,
+          page: 'r-list'
+        }
+      })
+    }
+  }
+}, {
+  when: 'r-main'
+})
+```
+
+Это позволяет создавать любое количество меню в любом компоненте, и обрабатывать события путей в одном месте.
+
+В приложении, главное меню располагается в компоненте Header:
+
+```html
+<nav>
+  <a href="/">Home</a>
+  <a href="/categories/">Categories</a>
+</nav>
+```
+
+Но за счёт того, что маршрутизатор был привязан к объекту *document*, это меню можно было бы расположить и в футере, и в любом другом компоненте.
+
+Кроме этого, маршрутизатор имеет параметр **when** со значением "r-main". Это заставляет его дождаться подключения компонента Main к документу, и только после этого, маршрутизатор начнёт выполнять обработчики, соответствующие текущему пути, т.е. адресу, по которому открыто приложение.
+
+<br>
+
+Все компоненты страниц: Home, Categories, Worker и List, монтируются в компоненте Main с помощью элемента монтирования с атрибутом ***is***, который привязан к пользовательскому свойству **page**:
+
+```html
+<article :is="page"></article>
+```
+
+Для передачи данных из маршрутизатора в компонент Main, применяется элемент события routeEvents, с пользовательским событием *"page-change"*, как показано ниже:
+
+```js
+exports = {
+  data() {
+    return {
+      page: '',
+      category: '',
+      id: ''
+    }
+  },
+  connected() {
+    const routeEvents = this.$mixins.routeEvents
+
+    routeEvents.addEventListener('page-change', event => {
+      if (event.detail.category) {
+        this.category = event.detail.category
+      }
+      if (event.detail.id) {
+        this.id = event.detail.id
+      }
+      this.page = event.detail.page
+    })
+  }
+}
+```
+
+Все остальные компоненты являются простыми и не требуют дополнительного пояснения.
 
 <br>
 <br>
