@@ -3,6 +3,7 @@ const hbs = require("hbs")
 const { readFile } = require('fs/promises')
 const { JSDOM } = require("jsdom")
 const DB = require('./DB.json')
+const bots = require('./bots.js')
 const port = process.env.PORT || 3000
 
 const app = express()
@@ -15,17 +16,9 @@ hbs.registerPartials(__dirname + "/views/partials")
   bot agent string to test */
 const botAgent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 
-/* список ботов
-  bot list */
-const botList = [
-  'yandex', 'google', 'bot', 'Accoona', 'ia_archiver', 'Ask Jeeves', 'W3C_Validator', 'WebAlta', 'YahooFeedSeeker',
-  'Yahoo!', 'Ezooms', 'SiteStatus', 'Nigma.ru', 'Baiduspider', 'SISTRIX', 'findlinks', 'proximic', 'OpenindexSpider',
-  'statdom.ru', 'Spider', 'Snoopy', 'heritrix', 'Yeti', 'DomainVader', 'StackRambler'
-]
-
 /* поиск ботов в строке
   search for bots in a string */
-const regBots = new RegExp('(\\b' + botList.join('\\b)|(\\b') + '\\b)' , 'i')
+const regBots = new RegExp(`(${bots.join(')|(')})`, 'i')
 
 app.get('/favicon.ico', (req, res) => res.sendStatus(204))
 
