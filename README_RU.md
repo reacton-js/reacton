@@ -4,7 +4,7 @@
 
 ![rigl](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
-[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/dist/reacton.js)
+[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.js)
 
 <br>
 
@@ -58,7 +58,7 @@ Reacton - это JavaScript-библиотека для создания при�
 
 <br>
 
-Reacton позволяет создавать компоненты нескольких типов: Встроенные, Модульные, Шаблонные и Однофайловые компоненты. Мы начнём со Встроенных компонентов. Создайте новый рабочий каталог, например, с названием *app*, и скачайте в этот каталог файл [reacton.js](https://raw.githubusercontent.com/reacton-js/reacton/main/dist/reacton.js).
+Reacton позволяет создавать компоненты нескольких типов: Встроенные, Модульные, Шаблонные и Однофайловые компоненты. Мы начнём со Встроенных компонентов. Создайте новый рабочий каталог, например, с названием *app*, и скачайте в этот каталог файл [reacton.js](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.js).
 
 Добавьте в каталог файл *index.html* со следующим содержимым:
 
@@ -2430,8 +2430,10 @@ devServer: {
 module.exports = [
   // Yandex
   'YandexBot', 'YandexAccessibilityBot', 'YandexMobileBot',...
+  
   // Google
   'Googlebot', 'Googlebot-Image', 'Mediapartners-Google',...
+  
   // Other
   'Mail.RU_Bot', 'bingbot', 'Accoona', 'Lighthouse',...
 ]

@@ -4,7 +4,7 @@
 
 ![rigl](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
-[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/dist/reacton.js)
+[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.js)
 
 <br>
 
@@ -58,7 +58,7 @@ Below is an example of a simple single-file component:
 
 <br>
 
-Reacton allows you to create several types of components: Embedded, Modular, Template and Single File components. We'll start with Embedded Components. Create a new working directory, for example named *app*, and download the [reacton.js](https://raw.githubusercontent.com/reacton-js/reacton/main/dist/reacton.js) file into this directory.
+Reacton allows you to create several types of components: Embedded, Modular, Template and Single File components. We'll start with Embedded Components. Create a new working directory, for example named *app*, and download the [reacton.js](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.js) file into this directory.
 
 Add an *index.html* file to the directory with the following content:
 
@@ -2429,8 +2429,10 @@ The list of bots is located in the *bots.js* file and can be updated with new bo
 module.exports = [
   // Yandex
   'YandexBot', 'YandexAccessibilityBot', 'YandexMobileBot',...
+  
   // Google
   'Googlebot', 'Googlebot-Image', 'Mediapartners-Google',...
+  
   // Other
   'Mail.RU_Bot', 'bingbot', 'Accoona', 'Lighthouse',...
 ]
