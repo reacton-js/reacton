@@ -6,8 +6,22 @@
     <p>{{ $mixins.print() }}</p>
   </nav>
 
+  <button :onclick="reverse()">Reverse</button>
+
+  <ul $for="item of arr">
+    <li>Элемент: {{ item }}</li>
+  </ul>
+
   <script>
     exports = {
+      data() {
+        return {
+          reverse() {
+            this.arr.reverse()
+          },
+          arr: [1,2,3]
+        }
+      },
       async connected() {
         // const { routes } = await import('./Events.js')
         const routes = this.$mixins.routes

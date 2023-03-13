@@ -33,7 +33,7 @@ export default class Hooks {
     }
 
     // иначе, если вызывается один из игнорируемых методов массива
-    else if (ignoredMethods.has(method.name) && !proxy.hasOwnProperty(method.name)) {
+    else if (ignoredMethods.has(method.name) && !Hooks.target.hasOwnProperty(method.name)) {
       // выполнить метод в контексте исходного массива
       method.apply(Hooks.target, args)
 
