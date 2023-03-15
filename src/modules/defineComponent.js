@@ -93,7 +93,9 @@ export default function (obj, ok) {
         $root: { value: mode ? this.attachShadow({ mode }) : this },
         $host: { value: this },
         $parent: { value: parent?.$data },
-        $mixins: { value: new Proxy(emptyObject, { get: (_, key) => mixins?.[key] ?? Reacton.mixins?.[key] ?? this.$data[key] }) },
+        $mixins: { value: new Proxy(emptyObject, {
+          get: (_, key) => mixins?.[key] ?? Reacton.mixins?.[key] ?? this.$data[key]
+        })},
       })
 
       // добавить обработчик инициализации компонента
