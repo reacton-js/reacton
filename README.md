@@ -308,7 +308,7 @@ Make changes to the *index.html* file, as shown below:
   <script src="reacton.js"></script>
 
   <script>
-    // pass the Hello component template to the Reaction library
+    // pass the Hello component template to the Reacton library
     Reacton(document.querySelector('template[name="r-hello"]'))
   </script>
 </body>
@@ -350,7 +350,7 @@ The name of a Template component can be passed not in an attribute, but in the *
   <script src="reacton.js"></script>
 
   <script>
-    // pass the Hello component template to the Reaction library
+    // pass the Hello component template to the Reacton library
     Reacton(document.querySelector('template'))
   </script>
 </body>
@@ -979,7 +979,7 @@ Make changes to the *index.html* file, as shown below:
   <script src="reacton.js"></script>
 
   <script>
-    // pass the component templates to Reaction library
+    // pass the component templates to Reacton library
     Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
@@ -1130,7 +1130,7 @@ Make changes to the *index.html* file, as shown below:
   <script src="reacton.js"></script>
 
   <script>
-    // pass the component templates to Reaction library
+    // pass the component templates to Reacton library
     Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
@@ -1237,7 +1237,7 @@ Create an *Events.js* file in the *app* directory with the following content:
 export const eventReverse = new Reacton.event()
 ```
 
-When the **event()** method of the Reaction function is called as a constructor, it returns a new [fragment of the document](https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment), which is the source and recipient of user events.
+When the **event()** method of the Reacton function is called as a constructor, it returns a new [fragment of the document](https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment), which is the source and recipient of user events.
 
 
 Now make changes to the *index.html* file, as shown below:
@@ -1316,7 +1316,7 @@ Now make changes to the *index.html* file, as shown below:
   <script src="reacton.js"></script>
 
   <script>
-    // pass the component templates to Reaction library
+    // pass the component templates to Reacton library
     Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
@@ -1365,12 +1365,12 @@ In addition, a custom **reverseArray()** method has been added to the Lower comp
 The first argument of the special **$event()** method is the event element eventReverse, and the second argument is the name of the event to be called:
 
 ```js
- this.$event(eventReverse, 'reverse-colors')
+this.$event(eventReverse, 'reverse-colors')
 ```
 
 The **$event()** method can also receive a third argument, in which you can pass parameters that fully correspond to the parameters of the [CustomEvent](https://javascript.info/dispatch-events#custom-events) constructor. For example, you can pass the **detail** property, which allows you to share data between components.
 
-When the **event()** method of the Reaction function is called not as a constructor, it works similarly to the special **$event()** method.
+When the **event()** method of the Reacton function is called not as a constructor, it works similarly to the special **$event()** method.
 
 <br>
 
@@ -1443,7 +1443,7 @@ Reacton.mixins = {
   eventReverse: new Reacton.event()
 }
 
-// pass the component templates to Reaction library
+// pass the component templates to Reacton library
 Reacton(...document.querySelectorAll('template[name]'))
 ```
 
@@ -1526,7 +1526,7 @@ Make changes to the index.html file, as shown below:
   <script src="reacton.js"></script>
 
   <script>
-    // pass the Hello component template to the Reaction library
+    // pass the Hello component template to the Reacton library
     Reacton(document.querySelector('template[name="r-hello"]'))
   </script>
 </body>
@@ -1719,7 +1719,7 @@ Make changes to the index.html file, as shown below:
   <script src="reacton.js"></script>
 
   <script>
-    // pass the component templates to Reaction library
+    // pass the component templates to Reacton library
     Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
@@ -2189,7 +2189,7 @@ Make changes to the *index.html* file, as shown below:
       eventPage: new Reacton.event()
     }
 
-    // pass the component templates to Reaction library
+    // pass the component templates to Reacton library
     Reacton(...document.querySelectorAll('template[name]'))
   </script>
 </body>
