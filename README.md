@@ -1627,7 +1627,7 @@ However, in the expression:
 <h1>{{ $host.dataset.title }}</h1>
 ```
 
-the **$host** property still applies:
+the **$host** property still applies.
 
 It can be replaced with the *this* keyword:
 
