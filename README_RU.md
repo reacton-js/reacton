@@ -2,7 +2,7 @@
 
 [EN](https://github.com/reacton-js/reacton/blob/main/README.md) / [RU](https://github.com/reacton-js/reacton/blob/main/README_RU.md)
 
-![rigl](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
+![reacton](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
 [GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.js)
 
