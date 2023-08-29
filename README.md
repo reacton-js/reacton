@@ -4,7 +4,7 @@
 
 ![reacton](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
-[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.min.js)
+[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.min.js)
 
 <br>
 
@@ -52,7 +52,7 @@ Below is an example of a simple component:
 
 <br>
 
-Classes are used to create components. Classes can be either built into the main script or imported from an external module. Create a new working directory, for example named *app*, and download the [reacton.min.js](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.min.js) file into this directory.
+Classes are used to create components. Classes can be either built into the main script or imported from an external module. Create a new working directory, for example named *app*, and download the [reacton.min.js](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.min.js) file into this directory.
 
 Add an *index.html* file to the directory with the following content:
 

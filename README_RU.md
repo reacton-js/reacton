@@ -4,7 +4,7 @@
 
 ![reacton](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
-[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.min.js)
+[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.min.js)
 
 <br>
 
@@ -52,7 +52,7 @@ Reacton - это плагин JavaScript для быстрого создани�
 
 <br>
 
-Для создания компонентов применяются классы. Классы могут быть как встроенными в основной скрипт, так и импортированы из внешнего модуля. Создайте новый рабочий каталог, например, с названием *app*, и скачайте в этот каталог файл [reacton.min.js](https://raw.githubusercontent.com/reacton-js/reacton/main/app/reacton.min.js).
+Для создания компонентов применяются классы. Классы могут быть как встроенными в основной скрипт, так и импортированы из внешнего модуля. Создайте новый рабочий каталог, например, с названием *app*, и скачайте в этот каталог файл [reacton.min.js](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.min.js).
 
 Добавьте в каталог файл *index.html* со следующим содержимым:
 
