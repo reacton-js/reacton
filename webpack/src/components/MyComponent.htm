@@ -1,0 +1,18 @@
+<my-component>
+  <h1>Hello, {{ message }}!</h1>
+        
+  <style>
+    h1 {
+      color: {{ color }};
+    }
+  </style>
+
+  <script>
+    exports = class {
+      message = 'Reacton'
+      color = 'red'
+
+      static mode = 'open' // add Shadow DOM
+    }
+  </script>
+</my-component>

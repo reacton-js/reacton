@@ -1,82 +1,70 @@
-const express = require("express")
-const hbs = require("hbs")
+const express = require('express')
 const { readFile } = require('fs/promises')
-const { JSDOM } = require("jsdom")
-const DB = require('./DB.json')
-const bots = require('./bots.js')
+const jsdom = require('jsdom')
+const { JSDOM } = require('jsdom')
 const port = process.env.PORT || 3000
 
+// create an Express application object
 const app = express()
-app.use(express.static(__dirname + "/public"))
 
-app.set("view engine", "hbs")
-hbs.registerPartials(__dirname + "/views/partials")
+// define directory for static files
+app.use(express.static(__dirname + '/public'))
 
-/* строка агента бота для тестирования
-  bot agent string to test */
+// get an array of bot names from an external file
+const arrBots = require('./bots.js')
+
+// define the bot agent string to test
 const botAgent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 
-/* поиск ботов в строке
-  search for bots in a string */
-const regBots = new RegExp(`(${bots.join(')|(')})`, 'i')
+// define a regular expression to search for bot names in a string
+const regBots = new RegExp(`(${arrBots.join(')|(')})`, 'i')
 
+// search for script file extensions
+const regJS = /\.m?js$/
+
+// loads only scripts and ignores all other resources
+class CustomResourceLoader extends jsdom.ResourceLoader {
+  fetch(url, options) {
+    return regJS.test(url) ? super.fetch(url, options) : null
+  }
+}
+
+// process favicon
 app.get('/favicon.ico', (req, res) => res.sendStatus(204))
 
-/* вернуть категорию работников из базы данных
-  return the category of workers from the database */
-app.post('/categories/:category', (req, res) => {
-  const category = DB.filter(item => item.category == req.params.category)
-  res.send(category)
-})
-
-/* вернуть id работника из базы данных
-  return employee id from database */
-app.post('/categories/\\w+/:id', (req, res) => {
-  const user = DB.find(item => item.id == req.params.id)
-  res.send(user)
-})
-
+// process all other requests
 app.use(async (req, res) => {
-  /* получить строку агента
-    get agent string */
+  // define user agent
   const userAgent = (process.argv[2] == 'bot') ? botAgent : req.get('User-Agent')
   
-  /* если запрос идёт от поискового бота
-    if the request comes from a search bot */
+  // if the request comes from a bot
   if (regBots.test(userAgent)) {
-    /* получить полный адрес запроса
-      get full request address */
-    const fullURL = req.protocol + "://" + req.hostname + `${port ? `:${port}` : ''}` + req.originalUrl
+    // determine the full URL of the request
+    const fullURL = req.protocol + '://' + req.hostname + `${port ? `:${port}` : ''}` + req.originalUrl
 
-    const HTML = await readFile(__dirname + '/views/partials/Body.hbs')
-      .then(async data => {
-        /* определить новый JSDOM с параметрами
-          define a new JSDOM with parameters */
-        const dom = new JSDOM(data.toString(), {
-          url: fullURL,
-          runScripts: "dangerously",
-          resources: "usable"
-        })
-        
-        /* вернуть отрендеренное HTML-содержимое элемента BODY
-          return the rendered HTML content of the BODY element */
-        return await new Promise(done => {
-          dom.window.onload = () => dom.window.Reacton.render(dom.window.document.body).then(done)
-        })
-      })
+    // load the main page file of the application
+    const file = await readFile(__dirname + '/index.html')
 
-    /* передать свойство HTML в представление Main
-      pass HTML property to Main view */
-    res.render("Main.hbs", { HTML })
+    // define a new JSDOM object with parameters
+    const dom = new JSDOM(file.toString(), {
+      url: fullURL, // set page url
+      resources: new CustomResourceLoader(), // loading only scripts
+      runScripts: 'dangerously', // allow page scripts to execute
+    })
+
+    // get the rendered HTML content of the page
+    const html = await new Promise(ok => dom.window.onload = () => dom.window.Reacton.ssr().then(ok))
+
+    // return rendered HTML content
+    res.send(html)
   }
-
-  /* иначе, если запрос идёт от пользователя
-    otherwise, if the request comes from the user */
+  
+  // otherwise, if the request comes from a user
   else {
-    /* вернуть частичное представление Body из представления Main
-      return partial view of Body from view of Main */
-    res.render("Main.hbs")
+    // return the main page file of the application
+    res.sendFile(__dirname + '/index.html')
   }
 })
 
+// start the server
 app.listen(port, () => console.log(`The server is running at http://localhost:${port}/`))

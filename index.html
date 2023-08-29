@@ -1,69 +1,40 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reacton</title>
 </head>
 <body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
 
-  <header is="r-header"></header>
-  <main is="r-main"></main>
-
-
-  <!-- <header id="header" is="r-header"></header> -->
-  <!-- <r-header></r-header> -->
-  <!-- <r-hello></r-hello> -->
-
-  <!-- <section is="r-test"></section> -->
-  <!-- <r-test id="test2"></r-test> -->
-  <!-- <r-footer></r-footer> -->
-
-  <template name="r-test" extends="section" mode="open">
-    <h2>{{ message }}</h2>
-    <p>{{ $parent?.color || 'нет' }}</p>
-
-    <slot></slot>
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <h1>Hello, {{ message }}!</h1>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
 
     <script>
-      exports = {
-        async data() {
-          await new Promise(ready => setTimeout(ready, 1000))
+      exports = class {
+        message = 'Reacton'
+        color = 'red'
 
-          return {
-            message: 'Тестовый'
-          }
-        },
-        async connected() {
-          // await new Promise(ready => setTimeout(ready, 1000))
-        }
+        static mode = 'open' // add Shadow DOM
       }
     </script>
   </template>
 
-  <!-- импортировать модуль библиотеки Reacton -->
-  <script src="dist/reacton.js"></script>
-  
-  <script type="module">
-    // import Hello from './dist/Hello.js'
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
 
-    Reacton.mixins = {
-      routes: new Reacton.event(),
-      print() {
-        return 'Привет Глабально'
-      }
-    }
-    
-    // const comp1 = await Reacton(document.querySelector('template[name]'), 'dist/components.htm', Hello)
-    // const comp1 = await Reacton('dist/components.htm', document.querySelector('template[name]'))
-    const comp1 = await Reacton('dist/components.htm')
-
-    console.log(comp1)
-
-    // const rend1 = await Reacton.render()
-    const rend1 = await Reacton.render(document.body)
-    console.log(rend1)
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
 </html>

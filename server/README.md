@@ -4,25 +4,13 @@
 npm i
 ```
 
-#### Webpack Development
-
-```
-npm start
-```
-
-#### Webpack Production
-
-```
-npm run build
-```
-
-#### Node Server
+#### Server
 
 ```
 node server
 ```
 
-#### Node Server Bot
+#### Bot
 
 ```
 node server bot
