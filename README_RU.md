@@ -37,9 +37,9 @@ Reacton - это плагин JavaScript для быстрого создани�
 2. [Класс компонента](#component-class)
 3. [Специальные свойства](#special-properties)
 4. [Общие методы](#general-methods)
-5. ~~[Циклы](#cycles)~~
-6. ~~[Стили](#styles)~~
-7. ~~[Слоты](#slots)~~
+5. [Циклы](#cycles)
+6. [Стили](#styles)
+7. [Слоты](#slots)
 8. ~~[События](#events)~~
 9. ~~[Маршруты](#routes)~~
 10. ~~[SSR](#ssr)~~
@@ -1116,6 +1116,284 @@ static connected() {
 
     // передать шаблоны компонентов в плагин Reacton
     Reacton(...document.querySelectorAll('template'))
+  </script>
+</body>
+</html>
+```
+
+При определении компонентов в тегах &lt;template&gt;, суперкласс должен быть доступен глобально:
+
+```js
+// создать класс Methods для хранения общих методов
+class Methods {
+  printHello() {
+    return `Привет, ${ this.message }!`
+  }
+}
+```
+
+<br>
+<br>
+<h2 id="cycles">Циклы</h2>
+
+<br>
+
+Reacton поддерживает три вида циклов *"for"*, которые реализованы в  JavaScript. Все они определяются с помощью специального атрибута ***$for*** и выводят содержимое своих HTML-элементов столько раз, сколько предусмотрено условием цикла.
+
+В примере ниже, цикл *"for"* выводит 10 параграфов с числами от 0 до 9:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- монтировать компонент MyComponent -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- создать шаблон компонента MyComponent -->
+  <template class="MyComponent">
+    <!-- вывести 10 параграфов -->
+    <div $for="i = 0; i < 10; i++">
+      <p>Число: {{ i }}</p>
+    </div>
+  </template>
+
+  <!-- подключить плагин Reacton -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // передать шаблон компонента MyComponent в плагин Reaction
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
+```
+
+В специальном атрибуте ***$for*** нельзя использовать операторы определения переменных: *var*, *let* и *const* соответственно. Это приведёт к ошибке:
+
+```html
+<!-- вывести 10 параграфов -->
+<div $for="var i = 0; i < 10; i++">
+  <p>Число: {{ i }}</p>
+</div>
+```
+
+<br>
+
+Цикл *"for-in"* используется для вывода содержимого объектов, как показано ниже:
+
+```html
+<!-- создать шаблон компонента MyComponent -->
+<template class="MyComponent">
+  <!-- вывести содержимое объекта -->
+  <ul $for="prop in user">
+    <li>
+      <b>{{ prop }}</b>: {{ user[prop] }}
+    </li>
+  </ul>
+
+  <script>
+    exports = class {
+      user = {
+        name: 'Иван',
+        age: 32
+      }
+    }
+  </script>
+</template>
+```
+
+<br>
+
+Цикл *"for-of"* предназначен для работы с массивами:
+
+```html
+<!-- создать шаблон компонента MyComponent -->
+<template class="MyComponent">
+  <!-- вывести содержимое массива -->
+  <ul $for="col of colors">
+    <li>{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = class {
+      colors = ['красный', 'зелёный', 'синий']
+    }
+  </script>
+</template>
+```
+
+<br>
+
+Атрибуты событий HTML-элементов цикла можно привязывать к его переменным:
+
+```html
+<!-- вывести содержимое массива -->
+<ul $for="col of colors">
+  <li :onclick="console.log(col)">{{ col }}</li>
+</ul>
+```
+
+События всегда будут использовать актуальное значение переменной цикла для своей фазы итерации, даже после модификации массива:
+
+```html
+<!-- создать шаблон компонента MyComponent -->
+<template class="MyComponent">
+  <!-- кнопка обращения массива -->
+  <button :onclick="colors.reverse()">Обратить массив</button>
+
+  <!-- output the contents of the array -->
+  <ul $for="col of colors">
+    <li :onclick="console.log(col)">{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = class {
+      colors = ['red', 'green', 'blue']
+    }
+  </script>
+</template>
+```
+
+<br>
+
+В Reacton можно применять циклы с любой глубиной вложенности:
+
+```html
+<!-- создать шаблон компонента MyComponent -->
+<template class="MyComponent">
+  <!-- вывести массив объектов -->
+  <div $for="user of users">
+    <div>
+      <p>
+        <b>Имя</b>: {{ user.name }}
+      </p>
+      <p>
+        <b>Возраст</b>: {{ user.age }}
+      </p>
+      <div $for="category in user.skills">
+        <b>{{ category[0].toUpperCase() + category.slice(1) }}</b>:
+        <ol $for="item of user.skills[category]">
+          <li>{{ item }}</li>
+        </ol>
+      </div>
+    </div>
+    <hr>
+  </div>
+
+  <script>
+    exports = class {
+      users = [
+        {
+          name: 'Дмитрий',
+          age: 28,
+          skills: {
+            frontend: ['HTML', 'CSS'],
+            backend: ['Ruby', 'PHP', 'MySQL']
+          }
+        },
+        {
+          name: 'Ольга',
+          age: 25,
+          skills: {
+            frontend: ['HTML', 'JavaScript'],
+            backend: ['PHP']
+          }
+        },
+        {
+          name: 'Максим',
+          age: 30,
+          skills: {
+            frontend: ['HTML', 'CSS', 'JavaScript', 'jQuery'],
+            backend: ['Ruby', 'MySQL']
+          }
+        }
+      ]
+    }
+  </script>
+</template>
+```
+
+<br>
+<br>
+<h2 id="styles">Стили</h2>
+
+<br>
+
+Для создания [локальных стилей](https://learn.javascript.ru/shadow-dom-style), компоненту необходимо добавить [Теневой DOM](https://learn.javascript.ru/shadow-dom) с помощью статического свойства **mode**, как показано ниже:
+
+```js
+class MyComponent {
+  message = 'Reacton'
+  color = 'red'
+
+  static mode = 'open' // добавить Теневой DOM
+
+  static template = `
+    <h1>Привет, {{ message }}!</h1>
+    
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+  `
+}
+```
+
+<br>
+<br>
+<h2 id="slots">Слоты</h2>
+
+<br>
+
+Для работы со [слотами](https://learn.javascript.ru/slots-composition), компоненту необходимо добавить [Теневой DOM](https://learn.javascript.ru/shadow-dom) с помощью статического свойства **mode**, как показано ниже:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- монтировать компонент MyComponent -->
+  <my-component>
+    <span slot="username">Иван</span>
+    <span slot="age">32</span>
+    <span>Трудолюбивый</span>
+  </my-component>
+
+  <!-- создать шаблон компонента MyComponent -->
+  <template class="MyComponent">
+    <div>
+      Имя: <slot name="username"></slot>
+    </div>
+    <div>
+      Возраст: <slot name="age"></slot>
+    </div>
+    <div>
+      Характер: <slot><slot>
+    </div>
+
+    <script>
+      exports = class {
+        static mode = 'open' // добавить Теневой DOM
+      }
+    </script>
+  </template>
+
+  <!-- подключить плагин Reacton -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // передать шаблон компонента MyComponent в плагин Reaction
+    Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
 </html>

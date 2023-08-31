@@ -37,9 +37,9 @@ Below is an example of a simple component:
 2. [Component class](#component-class)
 3. [Special properties](#special-properties)
 4. [General methods](#general-methods)
-5. ~~[Cycles](#cycles)~~
-6. ~~[Styles](#styles)~~
-7. ~~[Slots](#slots)~~
+5. [Cycles](#cycles)
+6. [Styles](#styles)
+7. [Slots](#slots)
 8. ~~[Events](#events)~~
 9. ~~[Routes](#routes)~~
 10. ~~[SSR](#ssr)~~
@@ -1116,6 +1116,284 @@ This method is also used when defining components in &lt;template&gt; tags, for 
 
     // pass component templates to Reacton plugin
     Reacton(...document.querySelectorAll('template'))
+  </script>
+</body>
+</html>
+```
+
+When defining components in &lt;template&gt; tags, the super class must be globally accessible:
+
+```js
+// create a Methods class to store common methods
+class Methods {
+  printHello() {
+    return `Hello, ${ this.message }!`
+  }
+}
+```
+
+<br>
+<br>
+<h2 id="cycles">Cycles</h2>
+
+<br>
+
+Reacton supports three kinds of *"for"* loops that are implemented in JavaScript. They are all defined with a special ***$for*** attribute and output the contents of their HTML elements as many times as required by the loop condition.
+
+In the example below, the *"for"* loop outputs 10 paragraphs with numbers from 0 to 9:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <!-- output 10 paragraphs -->
+    <div $for="i = 0; i < 10; i++">
+      <p>Number: {{ i }}</p>
+    </div>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
+```
+
+The ***$for*** special attribute cannot use variable definition operators: *var*, *let*, and *const*, respectively. This will result in an error:
+
+```html
+<!-- output 10 paragraphs -->
+<div $for="var i = 0; i < 10; i++">
+  <p>Number: {{ i }}</p>
+</div>
+```
+
+<br>
+
+The *"for-in"* loop is used to output the contents of objects, as shown below:
+
+```html
+<!-- create component template MyComponent -->
+<template class="MyComponent">
+  <!-- output the contents of object -->
+  <ul $for="prop in user">
+    <li>
+      <b>{{ prop }}</b>: {{ user[prop] }}
+    </li>
+  </ul>
+
+  <script>
+    exports = class {
+      user = {
+        name: 'John',
+        age: 32
+      }
+    }
+  </script>
+</template>
+```
+
+<br>
+
+The *"for-of"* loop is designed to work with arrays:
+
+```html
+<!-- create component template MyComponent -->
+<template class="MyComponent">
+  <!-- output the contents of the array -->
+  <ul $for="col of colors">
+    <li>{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = class {
+      colors = ['red', 'green', 'blue']
+    }
+  </script>
+</template>
+```
+
+<br>
+
+Event attributes of loop HTML elements can be bound to loop variables:
+
+```html
+<!-- output the contents of the array -->
+<ul $for="col of colors">
+  <li :onclick="console.log(col)">{{ col }}</li>
+</ul>
+```
+
+Events will always use the current value of the loop variable for their iteration phase, even after the array has been modified:
+
+```html
+<!-- create component template MyComponent -->
+<template class="MyComponent">
+  <!-- array reversal button -->
+  <button :onclick="colors.reverse()">Reverse array</button>
+
+  <!-- output the contents of the array -->
+  <ul $for="col of colors">
+    <li :onclick="console.log(col)">{{ col }}</li>
+  </ul>
+
+  <script>
+    exports = class {
+      colors = ['red', 'green', 'blue']
+    }
+  </script>
+</template>
+```
+
+<br>
+
+You can use loops with any nesting depth in Reacton:
+
+```html
+<!-- create component template MyComponent -->
+<template class="MyComponent">
+  <!-- output an array of objects -->
+  <div $for="user of users">
+    <div>
+      <p>
+        <b>Name</b>: {{ user.name }}
+      </p>
+      <p>
+        <b>Age</b>: {{ user.age }}
+      </p>
+      <div $for="category in user.skills">
+        <b>{{ category[0].toUpperCase() + category.slice(1) }}</b>:
+        <ol $for="item of user.skills[category]">
+          <li>{{ item }}</li>
+        </ol>
+      </div>
+    </div>
+    <hr>
+  </div>
+
+  <script>
+    exports = class {
+      users = [
+        {
+          name: 'John',
+          age: 28,
+          skills: {
+            frontend: ['HTML', 'CSS'],
+            backend: ['Ruby', 'PHP', 'MySQL']
+          }
+        },
+        {
+          name: 'Clementine',
+          age: 25,
+          skills: {
+            frontend: ['HTML', 'JavaScript'],
+            backend: ['PHP']
+          }
+        },
+        {
+          name: 'Chelsey',
+          age: 30,
+          skills: {
+            frontend: ['HTML', 'CSS', 'JavaScript', 'jQuery'],
+            backend: ['Ruby', 'MySQL']
+          }
+        }
+      ]
+    }
+  </script>
+</template>
+```
+
+<br>
+<br>
+<h2 id="styles">Styles</h2>
+
+<br>
+
+To create [local styles](https://javascript.info/shadow-dom-style), the component needs to add a [Shadow DOM](https://javascript.info/shadow-dom) using the static property **mode**, as shown below:
+
+```js
+class MyComponent {
+  message = 'Reacton'
+  color = 'red'
+
+  static mode = 'open' // add Shadow DOM
+
+  static template = `
+    <h1>Hello, {{ message }}!</h1>
+    
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+  `
+}
+```
+
+<br>
+<br>
+<h2 id="slots">Slots</h2>
+
+<br>
+
+To work with [slots](https://javascript.info/slots-composition), the component needs to add a [Shadow DOM](https://javascript.info/shadow-dom) using the static property **mode**, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component>
+    <span slot="username">John</span>
+    <span slot="age">32</span>
+    <span>Hardworking</span>
+  </my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <div>
+      Name: <slot name="username"></slot>
+    </div>
+    <div>
+      Age: <slot name="age"></slot>
+    </div>
+    <div>
+      Character: <slot><slot>
+    </div>
+
+    <script>
+      exports = class {
+        static mode = 'open' // add Shadow DOM
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
 </html>
