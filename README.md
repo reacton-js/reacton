@@ -467,7 +467,7 @@ static async template() {
 }
 ```
 
-If the component is created in the &lt;template&gt; tags, then the static property **template** is not specified:
+If the component is created in the &lt;template&gt; tags, then the static property **template** is not specified. The HTML content of the component is determined by the content of this tag:
 
 ```html
 <!-- create component template MyComponent -->
