@@ -37,12 +37,13 @@ Below is an example of a simple component:
 2. [Component class](#component-class)
 3. [Special properties](#special-properties)
 4. [General methods](#general-methods)
-5. [Cycles](#cycles)
-6. [Styles](#styles)
-7. [Slots](#slots)
-8. ~~[Events](#events)~~
-9. ~~[Routes](#routes)~~
-10. ~~[SSR](#ssr)~~
+5. [Reactive attributes](#reactive-attributes)
+6. [Cycles](#cycles)
+7. [Styles](#styles)
+8. [Slots](#slots)
+9. ~~[Events](#events)~~
+10. ~~[Routes](#routes)~~
+11. ~~[SSR](#ssr)~~
 
 <br>
 <hr>
@@ -1130,6 +1131,57 @@ class Methods {
     return `Hello, ${ this.message }!`
   }
 }
+```
+
+<br>
+<br>
+<h2 id="reactive-attributes">Reactive attributes</h2>
+
+<br>
+
+To create reactive attributes, precede their name with a colon character «:». Expressions in reactive attributes are specified without the use of double curly braces, as opposed to HTML content, for example:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <h1 :title="message">Hello, {{ message }}!</h1>
+    <button :onclick="message = 'Web Components'">Change message</button>
+    <button :onclick="color = 'green'">Change color</button>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        message = 'Reacton'
+        color = 'red'
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
 ```
 
 <br>

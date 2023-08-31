@@ -37,12 +37,13 @@ Reacton - это плагин JavaScript для быстрого создани�
 2. [Класс компонента](#component-class)
 3. [Специальные свойства](#special-properties)
 4. [Общие методы](#general-methods)
-5. [Циклы](#cycles)
-6. [Стили](#styles)
-7. [Слоты](#slots)
-8. ~~[События](#events)~~
-9. ~~[Маршруты](#routes)~~
-10. ~~[SSR](#ssr)~~
+5. [Реактивные атрибуты](#reactive-attributes)
+6. [Циклы](#cycles)
+7. [Стили](#styles)
+8. [Слоты](#slots)
+9. ~~[События](#events)~~
+10. ~~[Маршруты](#routes)~~
+11. ~~[SSR](#ssr)~~
 
 <br>
 <hr>
@@ -1130,6 +1131,57 @@ class Methods {
     return `Привет, ${ this.message }!`
   }
 }
+```
+
+<br>
+<br>
+<h2 id="reactive-attributes">Реактивные атрибуты</h2>
+
+<br>
+
+Для создания реактивных атрибутов, перед их именем необходимо указать символ двоеточия «:». Выражения в реактивных атрибутах указываются без использования двойных фигурных скобок, в отличие от HTML-содержимого, например:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- монтировать компонент MyComponent -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- создать шаблон компонента MyComponent -->
+  <template class="MyComponent">
+    <h1 :title="message">Привет, {{ message }}!</h1>
+    <button :onclick="message = 'Веб-компоненты'">Изменить сообщение</button>
+    <button :onclick="color = 'green'">Изменить цвет</button>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        message = 'Reacton'
+        color = 'red'
+      }
+    </script>
+  </template>
+
+  <!-- подключить плагин Reacton -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // передать шаблон компонента MyComponent в плагин Reaction
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
 ```
 
 <br>
