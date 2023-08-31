@@ -467,6 +467,28 @@ static async template() {
 }
 ```
 
+Если компонент создаётся в тегах &lt;template&gt;, то статическое свойство **template** не указывается:
+
+```html
+<!-- создать шаблон компонента MyComponent -->
+<template class="MyComponent">
+  <h1>Привет, {{ message }}!</h1>
+        
+  <style>
+    h1 {
+      color: {{ color }};
+    }
+  </style>
+
+  <script>
+    exports = class {
+      message = 'Reacton'
+      color = 'red'
+    }
+  </script>
+</template>
+```
+
 <br>
 
 По умолчанию, все компоненты создаются без [Теневого DOM](https://learn.javascript.ru/shadow-dom). Это означает, что используемые в них стили влияют на DOM всего [документа](https://developer.mozilla.org/ru/docs/Web/API/Document), а не конкретного компонента. 

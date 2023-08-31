@@ -467,6 +467,28 @@ static async template() {
 }
 ```
 
+If the component is created in the &lt;template&gt; tags, then the static property **template** is not specified:
+
+```html
+<!-- create component template MyComponent -->
+<template class="MyComponent">
+  <h1>Hello, {{ message }}!</h1>
+        
+  <style>
+    h1 {
+      color: {{ color }};
+    }
+  </style>
+
+  <script>
+    exports = class {
+      message = 'Reacton'
+      color = 'red'
+    }
+  </script>
+</template>
+```
+
 <br>
 
 By default, all components are created without [Shadow DOM](https://javascript.info/shadow-dom). This means that the styles they use affect the DOM of the entire [document](https://developer.mozilla.org/en-US/docs/Web/API/Document), not a specific component.
