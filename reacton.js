@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.0.0
+ * Reacton.js v3.1.0
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -165,14 +165,14 @@
           $route: { value: routeEvent },
         })
 
-        // определить функцию для создания исполнителей реактивных узлов
-        const exec = getExec.call(this)
-
         // определить объект со служебными свойствами
-        const service = { root, funcs, obsers, bools, events, state, exec }
+        const service = { root, funcs, obsers, bools, events, state }
 
         // добавить объект служебных свойств в главное хранилище
         SERVICE.set(this, service)
+        
+        // определить функцию для создания исполнителей реактивных узлов
+        service.exec = getExec.call(this)
 
         // определить объект перехватчиков для наблюдателя
         const hooks = new Hooks(INITClass, obsers)
@@ -435,7 +435,7 @@
   // возвращает функцию для создания исполнителей реактивных узлов
   function getExec () {
     return new Function(`{ ${specNames} } = this`,
-      `return function() { with (this) return eval(arguments[0]) }`).call(this).bind(this.$state)
+      `return function() { with (this) return eval(arguments[0]) }`).call(this).bind(SERVICE.get(this).state)
   }
 
 
