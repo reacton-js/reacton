@@ -41,7 +41,7 @@ Below is an example of a simple component:
 6. [Cycles](#cycles)
 7. [Styles](#styles)
 8. [Slots](#slots)
-9. ~~[Events](#events)~~
+9. [Events](#events)
 10. ~~[Routes](#routes)~~
 11. ~~[SSR](#ssr)~~
 
@@ -1177,9 +1177,10 @@ To create reactive attributes, precede their name with a colon character «:». 
 
   <!-- create component template MyComponent -->
   <template class="MyComponent">
-    <h1 :title="message">Hello, {{ message }}!</h1>
+    <h1 :title="message" :hidden="hide">Hello, {{ message }}!</h1>
     <button :onclick="message = 'Web Components'">Change message</button>
     <button :onclick="color = 'green'">Change color</button>
+    <button :onclick="hide = !hide">Hide/Show</button>
           
     <style>
       h1 {
@@ -1191,6 +1192,7 @@ To create reactive attributes, precede their name with a colon character «:». 
       exports = class {
         message = 'Reacton'
         color = 'red'
+        hide = false
       }
     </script>
   </template>
@@ -1204,6 +1206,87 @@ To create reactive attributes, precede their name with a colon character «:». 
   </script>
 </body>
 </html>
+```
+
+As you can see from this example, not only simple, but also event attributes and boolean attributes can be reactive.
+
+<br>
+
+The [*is*](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/is) attribute is used to mount components into standard HTML elements. This attribute can be made reactive:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <!-- components mount element -->
+    <div :is="view"></div>
+
+    <button :onclick="view = 'component-a'">Component-A</button>
+    <button :onclick="view = 'component-b'">Component-B</button>
+
+    <script>
+      exports = class {
+        view = 'component-a' // initial value
+      }
+    </script>
+  </template>
+
+  <!-- create component template ComponentA -->
+  <template class="ComponentA">
+    <h1>Component-A</h1>
+
+    <script>
+      exports = class {
+        static extends = 'div' // mounting element
+      }
+    </script>
+  </template>
+
+  <!-- create component template ComponentB -->
+  <template class="ComponentB">
+    <h1>Component-B</h1>
+
+    <script>
+      exports = class {
+        static extends = 'div' // mounting element
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component templates to Reacton plugin
+    Reacton(...document.querySelectorAll('template'))
+  </script>
+</body>
+</html>
+```
+
+Mounted components must contain a static property **extends** with a value corresponding to the name of the element in which they are mounted:
+
+```js
+exports = class {
+  static extends = 'div' // mounting element
+}
+```
+
+In addition, if the element in which the components are mounted contains other reactive attributes, then all of them must be specified before the ***is*** attribute, for example:
+
+```html
+<!-- components mount element -->
+<div :title="view" :onclick="console.log(view)" :is="view"></div>
 ```
 
 <br>
@@ -1364,7 +1447,7 @@ You can use loops with any nesting depth in Reacton:
       users = [
         {
           name: 'John',
-          age: 28,
+          age: 32,
           skills: {
             frontend: ['HTML', 'CSS'],
             backend: ['Ruby', 'PHP', 'MySQL']
@@ -1468,6 +1551,323 @@ To work with [slots](https://javascript.info/slots-composition), the component n
   <script>
     // pass component template MyComponent to Reaction plugin
     Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
+```
+
+<br>
+<br>
+<h2 id="events">Events</h2>
+
+<br>
+
+For interaction between different components, an improved mechanism of [custom events](https://javascript.info/dispatch-events) is used. This mechanism involves the use of the **event()** method of the Reacton plugin and the special **$event()** method that is available in every component.
+
+When the Reacton plugin's **event()** method is called as a constructor, it returns a new [document fragment](https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment) that is the source and receiver of custom events. And when this method is not called as a constructor, it works similarly to the special method **$event()**. This allows you to link components not only to each other, but also to any external code.
+
+Make changes to the *index.html* file as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- mount the NewComponent component -->
+  <new-component id="newcomp"></new-component>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // create event element myEvent
+    const myEvent = new Reacton.event()
+
+    // create component class NewComponent
+    class NewComponent {
+      colors = ['red', 'green', 'blue']
+
+      static template = `
+        <ul $for="col of colors">
+          <li>{{ col }}</li>
+        </ul>
+      `
+
+      static connected() {
+        // add a "reverse" event handler to the myEvent element
+        myEvent.addEventListener('reverse', () => {
+          this.colors.reverse() // reverse array
+        })
+      }
+    }
+
+    // create component class MyComponent
+    class MyComponent {
+      static template = `
+        <button id="btn-reverse">Reverse array</button>
+      `
+
+      static connected() {
+        // add a "click" event handler for the button
+        this.$('#btn-reverse').addEventListener('click', () => {
+          // trigger "reverse" event on element myEvent
+          this.$event(myEvent, 'reverse')
+        })
+      }
+    }
+
+    // pass component classes to Reacton plugin
+    Reacton(MyComponent, NewComponent)
+  </script>
+</body>
+</html>
+```
+
+In this example, a new event element myEvent is first created:
+
+```js
+// create event element myEvent
+const myEvent = new Reacton.event()
+```
+
+This element will be assigned custom event handlers in some components and invoked in others.
+
+In the static method **connected()** of the NewComponent component class, the handler for the custom event *"reverse"* is assigned to the myEvent element. Inside this handler, the array is reverse and the DOM of the component is updated:
+
+```js
+static connected() {
+  // add a "reverse" event handler to the myEvent element
+  myEvent.addEventListener('reverse', () => {
+    this.colors.reverse() // reverse array
+  })
+}
+```
+
+In the static method **connected()** of the MyComponent component class, a *"click"* event handler is added to the button, inside which the *"reverse"* event is called for the myEvent element, as shown below:
+
+```js
+static connected() {
+  // add a "click" event handler for the button
+  this.$('#btn-reverse').addEventListener('click', () => {
+    // trigger "reverse" event on element myEvent
+    this.$event(myEvent, 'reverse')
+  })
+}
+```
+
+The first argument of the special **$event()** method is the event element myEvent, and the second argument is the name of the event to be called:
+
+```js
+this.$event(myEvent, 'reverse')
+```
+
+The **$event()** method can also receive a third argument, in which you can pass parameters that fully correspond to the parameters of the [CustomEvent](https://javascript.info/dispatch-events#custom-events) constructor. For example, you can pass the **detail** property, which allows you to share data between components.
+
+<br>
+
+Add a new *"new-colors"* event handler to the static **connected()** method of the NewComponent component, as shown below:
+
+```js
+static connected() {
+  // add a "reverse" event handler to the myEvent element
+  myEvent.addEventListener('reverse', () => {
+    this.colors.reverse() // reverse array
+  })
+
+  // add a "new-colors" event handler to the myEvent element
+  myEvent.addEventListener('new-colors', event => {
+    this.colors = event.detail // assign new array
+  })
+}
+```
+
+Note that the event handler now has an **event** parameter through which you can access the **detail** property. In addition, it is recommended to add a hyphen to the names of custom events so that they do not overlap with the names of standard events.
+
+Now modify the markup of the MyComponent component by adding a new button to it:
+
+```js
+static template = `
+  <button id="btn-reverse">Reverse array</button>
+  <button id="btn-new">New array</button>
+`
+```
+
+and the *"click"* event handler, inside which a new array of colors is passed to the *"new-colors"* event handler:
+
+```js
+static connected() {
+  // add a "click" event handler for the button
+  this.$('#btn-reverse').addEventListener('click', () => {
+    // trigger "reverse" event on element myEvent
+    this.$event(myEvent, 'reverse')
+  })
+
+  // add a "click" event handler for the button
+  this.$('#btn-new').addEventListener('click', () => {
+    // trigger "new-colors" event on element myEvent
+    this.$event(myEvent, 'new-colors', {
+      // pass a new array to the event handler
+      detail: ['blue', 'orange', 'purple', 'gold']
+    })
+  })
+}
+```
+
+In this way, data can be easily exchanged between different components.
+
+<br>
+
+To demonstrate the interaction of components with external code, add a button to clear the array in the markup of the *index.html* file:
+
+```html
+<!-- mount the MyComponent component -->
+<my-component id="mycomp"></my-component>
+
+<!-- mount the NewComponent component -->
+<new-component id="newcomp"></new-component>
+
+<!-- clear array button -->
+<button id="btn-clear">Clear array</button>
+```
+
+Add a new *"clear-colors"* event handler to the static **connected()** method of the NewComponent component, as shown below:
+
+```js
+static connected() {
+  // add a "reverse" event handler to the myEvent element
+  myEvent.addEventListener('reverse', () => {
+    this.colors.reverse() // reverse array
+  })
+
+  // add a "new-colors" event handler to the myEvent element
+  myEvent.addEventListener('new-colors', event => {
+    this.colors = event.detail // assign new array
+  })
+
+  // add a "clear-colors" event handler to the myEvent element
+  myEvent.addEventListener('clear-colors', event => {
+    this.colors.length = 0 //  clear array
+  })
+}
+```
+
+and the *"click"* event handler for the new button at the end of the script:
+
+```js
+// add a "click" event handler for the button
+document.querySelector('#btn-clear').addEventListener('click', () => {
+  // trigger "clear-colors" event on element myEvent
+  Reacton.event(myEvent, 'clear-colors')
+})
+
+// pass component classes to Reacton plugin
+Reacton(MyComponent, NewComponent)
+```
+
+Inside this handler, the *"clear-colors"* event for the myEvent element is called using the **event()** method of the plugin itself:
+
+```js
+// trigger "clear-colors" event on element myEvent
+Reacton.event(myEvent, 'clear-colors')
+```
+
+rather than using the special **$event()** method, which is only available in components, but is essentially just a reference to the **event()** method of the Reacton plugin.
+
+Below is the full content of the *index.html* file:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- mount the NewComponent component -->
+  <new-component id="newcomp"></new-component>
+
+  <!-- clear array button -->
+  <button id="btn-clear">Clear array</button>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // create event element myEvent
+    const myEvent = new Reacton.event()
+
+    // create component class NewComponent
+    class NewComponent {
+      colors = ['red', 'green', 'blue']
+
+      static template = `
+        <ul $for="col of colors">
+          <li>{{ col }}</li>
+        </ul>
+      `
+
+      static connected() {
+        // add a "reverse" event handler to the myEvent element
+        myEvent.addEventListener('reverse', () => {
+          this.colors.reverse() // reverse array
+        })
+
+        // add a "new-colors" event handler to the myEvent element
+        myEvent.addEventListener('new-colors', event => {
+          this.colors = event.detail // assign new array
+        })
+
+        // add a "clear-colors" event handler to the myEvent element
+        myEvent.addEventListener('clear-colors', event => {
+          this.colors.length = 0 //  clear array
+        })
+      }
+    }
+
+    // create component class MyComponent
+    class MyComponent {
+      static template = `
+        <button id="btn-reverse">Reverse array</button>
+        <button id="btn-new">New array</button>
+      `
+
+      static connected() {
+        // add a "click" event handler for the button
+        this.$('#btn-reverse').addEventListener('click', () => {
+          // trigger "reverse" event on element myEvent
+          this.$event(myEvent, 'reverse')
+        })
+
+        // add a "click" event handler for the button
+        this.$('#btn-new').addEventListener('click', () => {
+          // trigger "new-colors" event on element myEvent
+          this.$event(myEvent, 'new-colors', {
+            // pass a new array to the event handler
+            detail: ['blue', 'orange', 'purple', 'gold']
+          })
+        })
+      }
+    }
+
+    // add a "click" event handler for the button
+    document.querySelector('#btn-clear').addEventListener('click', () => {
+      // trigger "clear-colors" event on element myEvent
+      Reacton.event(myEvent, 'clear-colors')
+    })
+
+    // pass component classes to Reacton plugin
+    Reacton(MyComponent, NewComponent)
   </script>
 </body>
 </html>
