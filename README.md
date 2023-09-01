@@ -42,7 +42,7 @@ Below is an example of a simple component:
 7. [Styles](#styles)
 8. [Slots](#slots)
 9. [Events](#events)
-10. ~~[Routes](#routes)~~
+10. [Routes](#routes)
 11. ~~[SSR](#ssr)~~
 
 <br>
@@ -724,7 +724,7 @@ static connected() {
 
 <br>
 
-The static methods **before()** and **after()** are called *Before* and *After* updating the component's DOM, using the special **$update()** method, for example:
+The static methods **before()** and **after()** are called *Before* and *After* updating the component's DOM, for example:
 
 ```js
 static before() {
@@ -1868,6 +1868,731 @@ Below is the full content of the *index.html* file:
 
     // pass component classes to Reacton plugin
     Reacton(MyComponent, NewComponent)
+  </script>
+</body>
+</html>
+```
+
+<br>
+<br>
+<h2 id="routes">Routes</h2>
+
+<br>
+
+To create routing, an improved [custom events](https://javascript.info/dispatch-events) mechanism is used. This mechanism involves the use of the **route()** method of the Reacton plugin and the special **$route()** method that is available in every component.
+
+When the Reacton plugin's **route()** method is called as a constructor, it returns a new [document fragment](https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment) that is the source and receiver of custom events. And when this method is not called as a constructor, it works similarly to the special method **$route()**. This allows you to connect the components involved in routing not only among themselves, but also with any external code.
+
+Unlike the **event()** method, the **route()** method, called as a constructor, returns document fragments with an improved [addEventListener()](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) method, which allows regular expression characters to be used in event names.
+
+Make changes to the *index.html* file as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyMenu component -->
+  <my-menu></my-menu>
+
+  <!-- mount the MyContent component -->
+  <my-content></my-content>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // create event element myRoute
+    const myRoute = new Reacton.route()
+
+    // create component class myHome
+    class myHome {
+      static extends = 'div' // mounting element
+      static template = '<h2>Home</h2>'
+    }
+
+    // create component class myAbout
+    class myAbout {
+      static extends = 'div' // mounting element
+      static template = '<h2>About</h2>'
+    }
+
+    // create component class myContacts
+    class myContacts {
+      static extends = 'div' // mounting element
+      static template = '<h2>Contacts</h2>'
+    }
+
+    // create component class MyMenu
+    class MyMenu {
+      static template = `
+        <nav>
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <a href="/contacts">Contacts</a>
+        </nav>
+      `
+
+      static connected() {
+        // add a "click" event handler to the NAV element
+        this.$('nav').addEventListener('click', event => {
+          // cancel clicking on the link
+          event.preventDefault()
+
+          // trigger a link address event on myRoute element
+          this.$route(myRoute, event.target.href)
+        })
+      }
+    }
+
+    // create component class MyContent
+    class MyContent {
+      page = 'my-home' // initial state value
+
+      // components mount element
+      static template = '<div :is="page"></div>'
+
+      static connected() {
+        // add a "/" event handler to the myRoute element
+        myRoute.addEventListener('/', () => {
+          this.page = 'my-home' // assign a value
+        })
+
+        // add a "/about" event handler to the myRoute element
+        myRoute.addEventListener('/about', () => {
+          this.page = 'my-about' // assign a value
+        })
+
+        // add a "/contacts" event handler to the myRoute element
+        myRoute.addEventListener('/contacts', () => {
+          this.page = 'my-contacts' // assign a value
+        })
+      }
+    }
+
+    // pass component classes to Reacton plugin
+    Reacton(myHome, myAbout, myContacts, MyMenu, MyContent)
+  </script>
+</body>
+</html>
+```
+
+To work with routing, we need any development server, such as, for example, [lite-server](https://www.npmjs.com/package/lite-server).
+
+Install this server using the command in the terminal:
+
+```
+npm install --global lite-server
+```
+
+Now navigate to the *app* directory using a terminal or open a terminal in that directory and in the terminal enter the command:
+
+```
+lite-server
+```
+
+This will open a default browser window displaying the application created above.
+
+<br>
+
+In this example, a new event element myRoute is first created:
+
+```js
+// create event element myRoute
+const myRoute = new Reacton.route()
+```
+
+This element will be assigned address event handlers in some components and called in others.
+
+Then we have the definition of the three components of the pages:
+
+```js
+// create component class myHome
+class myHome {
+  static extends = 'div' // mounting element
+  static template = '<h2>Home</h2>'
+}
+
+// create component class myAbout
+class myAbout {
+  static extends = 'div' // mounting element
+  static template = '<h2>About</h2>'
+}
+
+// create component class myContacts
+class myContacts {
+  static extends = 'div' // mounting element
+  static template = '<h2>Contacts</h2>'
+}
+```
+
+After creating the pages components, the main menu component is created:
+
+```js
+// create component class MyMenu
+class MyMenu {
+  static template = `
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contacts">Contacts</a>
+    </nav>
+  `
+
+  static connected() {
+    // add a "click" event handler to the NAV element
+    this.$('nav').addEventListener('click', event => {
+      // cancel clicking on the link
+      event.preventDefault()
+
+      // trigger a link address event on myRoute element
+      this.$route(myRoute, event.target.href)
+    })
+  }
+}
+```
+
+This component is the first one mounted in the application:
+
+```html
+<!-- mount the MyMenu component -->
+<my-menu></my-menu>
+```
+
+In the static method **connected()** of the MyMenu component class, the NAV element is added a *"click"* event handler, inside which the link is paused and the address event is raised for the myRoute element, as shown below:
+
+```js
+static connected() {
+  // add a "click" event handler to the NAV element
+  this.$('nav').addEventListener('click', event => {
+    // cancel clicking on the link
+    event.preventDefault()
+
+    // trigger a link address event on myRoute element
+    this.$route(myRoute, event.target.href)
+  })
+}
+```
+
+As the name of the address event, in the second argument of the **$route()** method, the content of the ***href*** attribute of the link that was clicked is passed:
+
+```js
+// trigger a link address event on myRoute element
+this.$route(myRoute, event.target.href)
+```
+
+As when working with user events, the **$route()** method can be passed an object with the **detail** property in the third argument, in which some data is passed to handlers, for example:
+
+```js
+// trigger a link address event on myRoute element
+this.$route(myRoute, event.target.href, {
+  // pass a new array to the event handler
+  detail: ['blue', 'orange', 'purple', 'gold']
+})
+```
+
+An important difference from custom events is that the data passed to address events must be serializable and their size must not exceed 16 MiB. Those. this data must match the **state** parameter of the [pushState()](https://developer.mozilla.org/en-US/docs/Web/API/History/pushState) method.
+
+<br>
+
+The last component in the application is defined for the output of pages:
+
+```js
+// create component class MyContent
+class MyContent {
+  page = 'my-home' // initial state value
+
+  // components mount element
+  static template = '<div :is="page"></div>'
+
+  static connected() {
+    // add a "/" event handler to the myRoute element
+    myRoute.addEventListener('/', () => {
+      this.page = 'my-home' // assign a value
+    })
+
+    // add a "/about" event handler to the myRoute element
+    myRoute.addEventListener('/about', () => {
+      this.page = 'my-about' // assign a value
+    })
+
+    // add a "/contacts" event handler to the myRoute element
+    myRoute.addEventListener('/contacts', () => {
+      this.page = 'my-contacts' // assign a value
+    })
+  }
+}
+```
+
+This component is the last one mounted in the application:
+
+```html
+<!-- mount the MyContent component -->
+<my-content></my-content>
+```
+
+At the very beginning of this component's class, an initial state value of **page** is defined, as shown below:
+
+```js
+page = 'my-home' // initial state value
+```
+
+It matches the name of the myHome page component:
+
+```js
+// create component class myHome
+class myHome {
+  static extends = 'div' // mounting element
+  static template = '<h2>Home</h2>'
+}
+```
+
+In the HTML markup of the MyContent component, the myHome component is created using the ***is*** reactive attribute:
+
+```js
+// components mount element
+static template = '<div :is="page"></div>'
+```
+
+In the static method **connected()** of the MyContent component, three handlers are assigned to the myRoute element, as shown below:
+
+```js
+static connected() {
+  // add a "/" event handler to the myRoute element
+  myRoute.addEventListener('/', () => {
+    this.page = 'my-home' // assign a value
+  })
+
+  // add a "/about" event handler to the myRoute element
+  myRoute.addEventListener('/about', () => {
+    this.page = 'my-about' // assign a value
+  })
+
+  // add a "/contacts" event handler to the myRoute element
+  myRoute.addEventListener('/contacts', () => {
+    this.page = 'my-contacts' // assign a value
+  })
+}
+```
+
+Inside each handler, the **page** state is assigned a new value corresponding to the address of the page on which the handler fired, for example:
+
+```js
+this.page = 'my-about' // assign a value
+```
+
+This handler will work if the page address matches */about*.
+
+If the initial state value **page** does not match the name of the component, for example:
+
+```js
+page = '' // initial state value
+```
+
+or if the application is supposed to be opened not from the main page, but, for example, from the page */about* or any other, then it is recommended to add to the end of the static method **connected()** of the MyContent component, calling the address event for the myRoute element. Thus, routing will be triggered immediately after the component is connected.
+
+The second argument to the **$route()** method is the **href** property of the [location](https://developer.mozilla.org/en-US/docs/Web/API/Location) object, as shown below:
+
+
+```js
+static connected() {
+  // add a "/" event handler to the myRoute element
+  myRoute.addEventListener('/', () => {
+    this.page = 'my-home' // assign a value
+  })
+
+  // add a "/about" event handler to the myRoute element
+  myRoute.addEventListener('/about', () => {
+    this.page = 'my-about' // assign a value
+  })
+
+  // add a "/contacts" event handler to the myRoute element
+  myRoute.addEventListener('/contacts', () => {
+    this.page = 'my-contacts' // assign a value
+  })
+
+  // trigger page address event on myRoute element
+  this.$route(myRoute, location.href)
+}
+```
+
+<br>
+
+For event elements created using the **route()** method of the Reacton plugin, it is allowed to use [regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) characters in the name of events created by the **addEventListener()** method, for example:
+
+```js
+// add a "/abo\\w+" event handler to the myRoute element
+myRoute.addEventListener('/abo\\w+', () => {
+  this.page = 'my-about' // assign a value
+})
+```
+
+In this example, the handler will be called for all pages that start with */abo*.
+
+An important feature of creating regular expressions in a string is that special characters must be escaped twice:
+
+```js
+'/abo\\w+'
+```
+
+instead of:
+
+```js
+'/abo\w+'
+```
+
+At the internal level, such a string is converted to a regular expression of the following form:
+
+```js
+/\/abo\w+/
+```
+
+<br>
+
+All handlers support [routes parameters](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes#route_parameters). Add a new link to the HTML markup of the MyMenu component:
+
+```js
+static template = `
+  <nav>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/contacts">Contacts</a>
+    <a href="/john/32">John</a>
+  </nav>
+`
+```
+
+Create a new page component myUsers:
+
+```js
+// create component class myUsers
+class myUsers {
+  static extends = 'div' // mounting element
+  static mode = 'open' // add Shadow DOM
+
+  static template = `
+    <slot name="user"></slot>
+    <slot name="age"></slot>
+  `
+}
+```
+
+Since this component will receive HTML content from the outside in the [slots](https://javascript.info/slots-composition), it was necessary to add a [Shadow DOM](https://javascript.info/shadow-dom) to it, as shown below:
+
+```js
+static mode = 'open' // add Shadow DOM
+```
+
+In addition, the Shadow DOM must be added to all other pages components so that the HTML content passed through the slots to the myUsers component is not displayed in them:
+
+```js
+// create component class myHome
+class myHome {
+  static extends = 'div' // mounting element
+  static mode = 'open' // add Shadow DOM
+  static template = '<h2>Home</h2>'
+}
+
+// create component class myAbout
+class myAbout {
+  static extends = 'div' // mounting element
+  static mode = 'open' // add Shadow DOM
+  static template = '<h2>About</h2>'
+}
+
+// create component class myContacts
+class myContacts {
+  static extends = 'div' // mounting element
+  static mode = 'open' // add Shadow DOM
+  static template = '<h2>Contacts</h2>'
+}
+```
+
+Pass the class of the new component to the Reacton plugin:
+
+```js
+// pass component classes to Reacton plugin
+Reacton(myHome, myAbout, myContacts, MyMenu, MyContent, myUsers)
+```
+
+Modify the markup of the MyContent component by adding HTML output to named slots using the [slot](https://javascript.info/slots-composition#named-slots) attribute, as shown below:
+
+```js
+// components mount element
+static template = `
+  <div :is="page">
+    <p slot="user">{{ user }}</p>
+    <p slot="age">{{ age }}</p>
+  </div>
+`
+```
+
+Add two new states **user** and **age** for the MyContent component:
+
+```js
+page = 'my-home' // initial state value
+user = ''
+age = ''
+```
+
+It remains to add a handler for this address event at the end of the static method **connected()** of the MyContent component:
+
+```js
+static connected() {
+  // add a "/" event handler to the myRoute element
+  myRoute.addEventListener('/', () => {
+    this.page = 'my-home' // assign a value
+  })
+
+  // add a "/abo\\w+" event handler to the myRoute element
+  myRoute.addEventListener('/abo\\w+', () => {
+    this.page = 'my-about' // assign a value
+  })
+
+  // add a "/contacts" event handler to the myRoute element
+  myRoute.addEventListener('/contacts', () => {
+    this.page = 'my-contacts' // assign a value
+  })
+
+  // add a "/:user/:age" event handler to the myRoute element
+  myRoute.addEventListener('/:user/:age', event => {
+    this.page = 'my-users' // component name
+    this.user = event.params.user // username
+    this.age = event.params.age // user age
+  })
+}
+```
+
+Parameters are specified in the name of the processed event using the ":" symbol. In the example above, two parameters were given: ***:user*** and ***:age***. They are available inside the handler through the **params** property of the [event](https://javascript.info/introduction-browser-events#event-object) object, as shown below:
+
+```js
+this.user = event.params.user // username
+this.age = event.params.age // user age
+```
+
+<br>
+
+In addition to routes parameters, handlers allow you to work with query parameters. Add a new link to the HTML markup of the MyMenu component:
+
+```js
+static template = `
+  <nav>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/contacts">Contacts</a>
+    <a href="/john/32">John</a>
+    <a href="/john?age=32">Age</a>
+  </nav>
+`
+```
+
+Add a final handler for this address event at the end of the MyContent component's static **connected()** method:
+
+```js
+static connected() {
+  // add a "/" event handler to the myRoute element
+  myRoute.addEventListener('/', () => {
+    this.page = 'my-home' // assign a value
+  })
+
+  // add a "/abo\\w+" event handler to the myRoute element
+  myRoute.addEventListener('/abo\\w+', () => {
+    this.page = 'my-about' // assign a value
+  })
+
+  // add a "/contacts" event handler to the myRoute element
+  myRoute.addEventListener('/contacts', () => {
+    this.page = 'my-contacts' // assign a value
+  })
+
+  // add a "/:user/:age" event handler to the myRoute element
+  myRoute.addEventListener('/:user/:age', event => {
+    this.page = 'my-users' // component name
+    this.user = event.params.user // username
+    this.age = event.params.age // user age
+  })
+
+   // add a "/:user\\?age=32" event handler to the myRoute element
+  myRoute.addEventListener('/:user\\?age=32', event => {
+    this.page = 'my-users' // component name
+    this.user = event.params.user // username
+    this.age = event.url.searchParams.get('age') // user age
+  })
+}
+```
+
+To access query parameters, use the [url](https://javascript.info/url) property of the [event](https://javascript.info/introduction-browser-events#event-object) object. It contains the [searchParams](https://javascript.info/url#searchparams) property, which provides convenience methods for working with query parameters, one of which is the **get()** method, as shown below:
+
+```js
+this.age = event.url.searchParams.get('age') // user age
+```
+
+<br>
+
+To demonstrate the interaction of address event handlers with external code, instead of the MyMenu component, add the NAV element of the main menu to the markup of the *index.html* file:
+
+```html
+<!-- Main menu -->
+<nav id="mymenu">
+  <a href="/">Home</a>
+  <a href="/about">About</a>
+  <a href="/contacts">Contacts</a>
+  <a href="/john/32">John</a>
+  <a href="/john?age=32">Age</a>
+</nav>
+
+<!-- mount the MyContent component -->
+<my-content></my-content>
+```
+
+Add a *"click"* event handler for this menu at the end of the script:
+
+```js
+// add a "click" event handler to the NAV element
+document.querySelector('#mymenu').addEventListener('click', () => {
+  // cancel clicking on the link
+  event.preventDefault()
+
+  // trigger a link address event on myRoute element
+  Reacton.route(myRoute, event.target.href)
+})
+
+// pass component classes to Reacton plugin
+Reacton(myHome, myAbout, myContacts, MyContent, myUsers)
+```
+
+Inside this handler, the address event for the myRoute element is called using the **route()** method of the plugin itself:
+
+```js
+// trigger a link address event on myRoute element
+Reacton.route(myRoute, event.target.href)
+```
+
+rather than using the special **$route()** method, which is only available in components, but is essentially just a reference to the **route()** method of the Reacton plugin.
+
+Below is the full content of the *index.html* file:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- Main menu -->
+  <nav id="mymenu">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/contacts">Contacts</a>
+    <a href="/john/32">John</a>
+    <a href="/john?age=32">Age</a>
+  </nav>
+
+  <!-- mount the MyContent component -->
+  <my-content></my-content>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // create event element myRoute
+    const myRoute = new Reacton.route()
+
+    // create component class myHome
+    class myHome {
+      static extends = 'div' // mounting element
+      static mode = 'open' // add Shadow DOM
+      static template = '<h2>Home</h2>'
+    }
+
+    // create component class myAbout
+    class myAbout {
+      static extends = 'div' // mounting element
+      static mode = 'open' // add Shadow DOM
+      static template = '<h2>About</h2>'
+    }
+
+    // create component class myContacts
+    class myContacts {
+      static extends = 'div' // mounting element
+      static mode = 'open' // add Shadow DOM
+      static template = '<h2>Contacts</h2>'
+    }
+
+    // create component class myUsers
+    class myUsers {
+      static extends = 'div' // mounting element
+      static mode = 'open' // add Shadow DOM
+
+      static template = `
+        <slot name="user"></slot>
+        <slot name="age"></slot>
+      `
+    }
+
+    // create component class MyContent
+    class MyContent {
+      page = 'my-home' // initial state value
+      user = ''
+      age = ''
+
+      // components mount element
+      static template = `
+        <div :is="page">
+          <p slot="user">{{ user }}</p>
+          <p slot="age">{{ age }}</p>
+        </div>
+      `
+
+      static connected() {
+        // add a "/" event handler to the myRoute element
+        myRoute.addEventListener('/', () => {
+          this.page = 'my-home' // assign a value
+        })
+
+        // add a "/abo\\w+" event handler to the myRoute element
+        myRoute.addEventListener('/abo\\w+', () => {
+          this.page = 'my-about' // assign a value
+        })
+
+        // add a "/contacts" event handler to the myRoute element
+        myRoute.addEventListener('/contacts', () => {
+          this.page = 'my-contacts' // assign a value
+        })
+
+        // add a "/:user/:age" event handler to the myRoute element
+        myRoute.addEventListener('/:user/:age', event => {
+          this.page = 'my-users' // component name
+          this.user = event.params.user // username
+          this.age = event.params.age // user age
+        })
+
+        // add a "/:user\\?age=32" event handler to the myRoute element
+        myRoute.addEventListener('/:user\\?age=32', event => {
+          this.page = 'my-users' // component name
+          this.user = event.params.user // username
+          this.age = event.url.searchParams.get('age') // user age
+        })
+      }
+    }
+
+    // add a "click" event handler to the NAV element
+    document.querySelector('#mymenu').addEventListener('click', () => {
+      // cancel clicking on the link
+      event.preventDefault()
+
+      // trigger a link address event on myRoute element
+      Reacton.route(myRoute, event.target.href)
+    })
+
+    // pass component classes to Reacton plugin
+    Reacton(myHome, myAbout, myContacts, MyContent, myUsers)
   </script>
 </body>
 </html>
