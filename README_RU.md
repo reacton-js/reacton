@@ -1178,7 +1178,7 @@ class Methods {
   <!-- создать шаблон компонента MyComponent -->
   <template class="MyComponent">
     <h1 :title="message" :hidden="hide">Привет, {{ message }}!</h1>
-    <button :onclick="message = 'Веб-компоненты'">Изменить сообщение</button>
+    <button :onclick="changeMessage">Изменить сообщение</button>
     <button :onclick="color = 'green'">Изменить цвет</button>
     <button :onclick="hide = !hide">Скрыть/Показать</button>
           
@@ -1193,6 +1193,10 @@ class Methods {
         message = 'Reacton'
         color = 'red'
         hide = false
+
+        changeMessage() {
+          return this.message = 'Веб-компоненты'
+        }
       }
     </script>
   </template>

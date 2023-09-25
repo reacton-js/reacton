@@ -1178,7 +1178,7 @@ To create reactive attributes, precede their name with a colon character «:». 
   <!-- create component template MyComponent -->
   <template class="MyComponent">
     <h1 :title="message" :hidden="hide">Hello, {{ message }}!</h1>
-    <button :onclick="message = 'Web Components'">Change message</button>
+    <button :onclick="changeMessage">Change message</button>
     <button :onclick="color = 'green'">Change color</button>
     <button :onclick="hide = !hide">Hide/Show</button>
           
@@ -1193,6 +1193,10 @@ To create reactive attributes, precede their name with a colon character «:». 
         message = 'Reacton'
         color = 'red'
         hide = false
+
+        changeMessage() {
+          return this.message = 'Web Components'
+        }
       }
     </script>
   </template>
