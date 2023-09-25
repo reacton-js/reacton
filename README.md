@@ -959,6 +959,27 @@ static connected() {
 
 <br>
 
+The **$entities()** method allows you to [render harmless](https://css-tricks.com/snippets/javascript/htmlentities-for-javascript/) data received from unreliable sources:
+
+```js
+static async template() {
+  // render harmless data received from an unreliable source
+  const message = this.$entities(await new Promise(ok => setTimeout(() => ok('<em>unsafe code</em>'), 1000)))
+
+  return `
+    <h1>Hello, ${ message }!</h1>
+    
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+  `
+}
+```
+
+<br>
+
 The **$event()** method is used to create custom events that allow different components to interact with each other, and the **\$route()** method is used to build routing. They will be considered later, since they require separate chapters for their explanation.
 
 <br>

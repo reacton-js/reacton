@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.2.0
+ * Reacton.js v3.2.1
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -281,6 +281,11 @@
           return SERVICE.get(this[getThis] || this).root.querySelectorAll(selector)
         }
         return null
+      }
+
+      // возвращает HTML-сущности в строке
+      $entities(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
       }
 
       // определить для компонента расширяемый элемент
