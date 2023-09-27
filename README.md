@@ -10,7 +10,7 @@
 
 Reacton is a JavaScript plugin for quickly building reactive [Web Components](https://javascript.info/web-components). The plugin supports all technologies, methods and properties such as [slots](https://javascript.info/slots-composition) and [Shadow DOM](https://javascript.info/shadow-dom) that are provided by standard Web Components.
 
-*- Added a [loader](https://www.npmjs.com/package/reacton-loader) of single-file components for [webpack](https://webpack.js.org/).*
+*- Added a [loader](https://www.npmjs.com/package/reacton-loader) of single-file components for [Webpack](https://webpack.js.org/).*
 
 <br>
 
