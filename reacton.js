@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.2.1
+ * Reacton.js v3.2.2
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -1192,7 +1192,7 @@
 
       Object.defineProperties(_class, {
         // добавить классу название компонента
-        name: { value: arg.classList[0] },
+        name: { value: (!_class.name || _class.name === 'exports') ? arg.classList[0] : _class.name },
         // добавить классу HTML-содержимое компонента
         template: { value: content },
       })

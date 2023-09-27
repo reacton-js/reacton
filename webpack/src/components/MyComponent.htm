@@ -1,5 +1,5 @@
 <my-component>
-  <h1>Hello, {{ message }}!</h1>
+  <h1>Hello, {{ getStringInUpperCase(message) }}!</h1>
         
   <style>
     h1 {
@@ -8,7 +8,9 @@
   </style>
 
   <script>
-    exports = class {
+    import Mixins from '../Mixins'
+
+    export default class extends Mixins{
       message = 'Reacton'
       color = 'red'
 
