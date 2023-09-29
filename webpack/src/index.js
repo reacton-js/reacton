@@ -1,4 +1,4 @@
-import './reacton.min.js'
+import 'reacton-js'
 import MyHeader from './components/MyHeader.htm'
 import MyComponent from './components/MyComponent.htm'
 
