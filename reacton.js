@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.3.0
+ * Reacton.js v3.4.0
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -36,7 +36,7 @@
   const okEvent = new customEvent()
 
   // определить событие инициализации компонента
-  const initEvent = new CustomEvent('init', { bubbles: true, composed: true })
+  const initEvent = new CustomEvent('init-event', { bubbles: true, composed: true })
 
   // определить дескриптор для свойства "detail" с возможностью записи 
   Object.defineProperty(initEvent, 'detail', { writable: true })
@@ -67,30 +67,45 @@
         // определить ссылку на теневой DOM или корневой элемент компонента
         const root = mode ? this.attachShadow({ mode }) : this
 
-        // определить хранилище исполнителей для реактивных узлов
+        // определить хранилище исполнителей для реактивных узлов компонента
         const funcs = new WeakMap()
 
-        // определить хранилище наблюдателей для объектов
+        // определить хранилище наблюдателей для значений состояния компонента
         const obsers = new WeakMap()
 
-        // определить хранилище логических атрибутов для отображений
+        // определить хранилище логических атрибутов для отображений компонента
         const bools = new WeakMap()
 
-        // определить хранилище атрибутов событий для отображений
+        // определить хранилище атрибутов событий для отображений компонента
         const events = new WeakMap()
+
+        // определить объект для ключей состояния компонента
+        const keys = {}
 
         // определить прокси для атрибутов компонента
         const props = new Proxy(this.attributes, attrHooks)
 
-        // определить объект для ключей состояния
-        const keys = {}
+        // определить объект для ссылочных атрибутов компонента
+        const refs = {}
+
+        // определить хозяина теневого DOM компонента
+        const host = root.host
+
+        // определить функцию поиска элемента по заданному селектору
+        const $ = sel => root.querySelector(sel)
+
+        // определить функцию поиска элементов по заданному селектору
+        const $$ = sel => root.querySelectorAll(sel)
 
         // определить объект с методом доступа к состоянию или свойству компонента
         const state = new Proxy(new INITClass(props), {
           // вернуть значение свойства объекта состояния или компонента
           get: (target, key, receiver) => {
-            // если запрашивается символ, то вернуть элемент компонента
+            // если запрашивается символ компонента, то вернуть компонент
             if (key === getThis) return this
+
+            // получить значение запрашиваемого свойства
+            const value = Reflect.get(target, key, receiver)
 
             // если запрашивается собственное свойство состояния
             if (target.hasOwnProperty(key)) {
@@ -109,25 +124,32 @@
               hooks._nodes = keys[key]
 
               // если значение состояния имеет наблюдателя
-              if (service.obsers.has(target[key])) {
+              if (service.obsers.has(value)) {
                 // вернуть наблюдателя для значения
-                return service.obsers.get(target[key])
+                return service.obsers.get(value)
               }
 
               // если значение состояния не является объектом
-              if (!target[key] || typeof target[key] !== 'object') {
-                return target[key] // вернуть значение
+              if (!value || typeof value !== 'object') {
+                return value // вернуть значение
               }
 
               // создать наблюдателя для значения состояния
-              return getObserver.call(this, target[key], hooks)
+              return getObserver.call(this, value, hooks)
             }
 
-            // получить прототип объекта состояния компонента
-            const proto = target.__proto__ || Object.getPrototypeOf(target)
-            
-            // вернуть значение свойства из прототипа объекта состояния или компонента
-            return (typeof key === 'symbol' || key in proto) ? Reflect.get(proto, key, receiver) : this[key]
+            // если запрашивается одно из специальных свойств компонента
+            switch (key) {
+              case '$state': return state
+              case '$props': return props
+              case '$refs': return refs
+              case '$host': return host
+              case '$': return $
+              case '$$': return $$
+            }
+
+            // вернуть значение свойства
+            return (typeof key === 'symbol' || key in target) ? value : this[key]
           },
 
           // установить значение свойства объекта состояния
@@ -153,8 +175,14 @@
           $state: { get() { if (mode !== 'closed') return state }},
           // возвращает прокси атрибутов компонента
           $props: { get() { if (mode !== 'closed') return props }},
+          // возвращает объект ссылочных атрибутов компонента
+          $refs: { get() { if (mode !== 'closed') return refs }},
           // возвращает хозяина теневого DOM компонента
-          $host: { get() { if (mode !== 'closed') return root.host }},
+          $host: { get() { if (mode !== 'closed') return host }},
+          // возвращает элемент из теневого DOM компонента
+          $: { get() { if (mode !== 'closed') return $ }},
+          // возвращает элементы из теневого DOM компонента
+          $$: { get() { if (mode !== 'closed') return $$ }},
           // возвращает Истину, если компонент не содержит теневой DOM
           $light: { value: root === this || false },
           // возвращает теневой DOM компонента
@@ -166,7 +194,7 @@
         })
 
         // определить объект со служебными свойствами
-        const service = { root, funcs, obsers, bools, events, state }
+        const service = { root, funcs, obsers, bools, events, state, refs }
 
         // добавить объект служебных свойств в главное хранилище
         SERVICE.set(this, service)
@@ -181,7 +209,7 @@
         hooks[getThis] = this
 
         // добавить компоненту обработчик события инициализации
-        this.addEventListener('init', event => {
+        this.addEventListener('init-event', event => {
           // удалить передаваемый компонент из множества
           setDefs.delete(event.detail)
 
@@ -195,7 +223,6 @@
           }
         })
       }
-
       
       // вызывается при добавлении компонента в документ
       async connectedCallback() {
@@ -264,23 +291,6 @@
         if (Array.isArray(INITClass.attributes)) {
           return INITClass.attributes
         }
-      }
-      
-      
-      // поиск элемента по заданному селектору
-      $(selector) {
-        if (mode !== 'closed' || this[getThis]) {
-          return SERVICE.get(this[getThis] || this).root.querySelector(selector)
-        }
-        return null
-      }
-
-      // поиск всех элементов по заданному селектору
-      $$(selector) {
-        if (mode !== 'closed' || this[getThis]) {
-          return SERVICE.get(this[getThis] || this).root.querySelectorAll(selector)
-        }
-        return null
       }
 
       // возвращает HTML-сущности в строке
@@ -358,7 +368,7 @@
       // установить целевой объект для перехватчика
       this._target = target
 
-      // получить значение свойства
+      // получить значение запрашиваемого свойства
       const value = Reflect.get(target, key, receiver)
 
       // если полученное значение имеет наблюдателя
@@ -435,12 +445,12 @@
 
 
   // список названий специальных свойств компонента
-  const specNames = '$state, $props, $host, $light, $shadow, $event, $route, $, $$'
+  const specNames = '$state, $props, $refs, $host, $, $$, $light, $shadow, $event, $route, $entities'
 
   // возвращает функцию для создания исполнителей реактивных узлов
   function getExec () {
     return new Function(`{ ${specNames} } = this`,
-      `return function() { with (this) return eval(arguments[0]) }`).call(this).bind(SERVICE.get(this).state)
+      `return function() { with (this) return eval(arguments[0]) }.bind(this)`).call(SERVICE.get(this).state)
   }
 
 
@@ -514,8 +524,8 @@
       }
     }
 
-    // иначе, если нода является реактивным атрибутом
-    else if (node.nodeName[0] === ':' || node.nodeName[0] === '$') {
+    // иначе, если нода является реактивным или ссылочным атрибутом
+    else if (node.nodeType === 2 && (node.nodeName[0] === ':' || node.nodeName[0] === '$' || node.nodeName[0] === '#')) {
       // получить объект со служебными свойствами
       const service = SERVICE.get(this)
 
@@ -525,8 +535,15 @@
       // удалить старый атрибут из шаблона компонента
       owner.removeAttribute(node.nodeName)
 
-      // если атрибут является циклом
-      if (node.nodeName === '$for') {
+      // если атрибут является ссылочным
+      if (node.nodeName[0] === '#') {
+        // добавить ссылку на элемент в объект ссылочных атрибутов
+        service.refs[node.nodeName.slice(1)] = owner
+
+        return null // вернуть null
+      }
+      // иначе, если атрибут является циклом
+      else if (node.nodeName === '$for') {
         // если обрабатывается не шаблон цикла
         if (!vars) {
           // получить ссылку на владельца атрибута
@@ -604,8 +621,8 @@
           // определить значение атрибута без пробелов
           let value = node.value.trim()
 
-          // если значение ссылается на функцию 
-          if (typeof this.$state[value] === 'function') {
+          // если значение ссылается на функцию
+          if (typeof service.state[value] === 'function') {
             value += '()' // добавить оператор вызова функции
           }
 

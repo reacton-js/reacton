@@ -10,6 +10,8 @@
 
 Reacton is a JavaScript plugin for quickly building reactive [Web Components](https://javascript.info/web-components). The plugin supports all technologies, methods and properties such as [slots](https://javascript.info/slots-composition) and [Shadow DOM](https://javascript.info/shadow-dom) that are provided by standard Web Components.
 
+*- In version 3.4.0, a bug in accessing special properties in static methods of closed components was fixed and reference attributes were added for quick access to elements.*
+
 *- Added a [loader](https://www.npmjs.com/package/reacton-loader) of single-file components for [Webpack](https://webpack.js.org/).*
 
 <br>
@@ -51,12 +53,13 @@ Below is an example of a simple component:
 3. [Special properties](#special-properties)
 4. [General methods](#general-methods)
 5. [Reactive attributes](#reactive-attributes)
-6. [Cycles](#cycles)
-7. [Styles](#styles)
-8. [Slots](#slots)
-9. [Events](#events)
-10. [Routes](#routes)
-11. [SSR](#ssr)
+6. [Reference attributes](#reference-attributes)
+7. [Cycles](#cycles)
+8. [Styles](#styles)
+9. [Slots](#slots)
+10. [Events](#events)
+11. [Routes](#routes)
+12. [SSR](#ssr)
 
 <br>
 <hr>
@@ -1371,6 +1374,69 @@ In addition, if the element in which the components are mounted contains other r
 ```html
 <!-- components mount element -->
 <div :title="view" :onclick="console.log(view)" :is="view"></div>
+```
+
+<br>
+<br>
+<h2 id="reference-attributes">Reference attributes</h2>
+
+<br>
+
+To quickly access elements within a component, you can use reference attributes that begin with a «#» character followed by the name of the reference attribute without a value, for example:
+
+```html
+<h1 #hello>Hello, {{ message }}!</h1>
+```
+
+In this example, the H1 element has been assigned the link attribute ***hello***. To get the element to which the attribute has been assigned, the special property **$refs** is used, which is an object containing all the reference attributes of the component and the elements they refer to.
+
+This can be used, for example, to assign custom event handlers to elements:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <h1 #hello>Hello, {{ message }}!</h1>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        message = 'Reacton'
+        color = 'red'
+
+        // called when the component is added to the document
+        static connected() {
+          // output the element that generated the event to the console
+          this.$refs.hello.addEventListener('click', event => console.log(event.target))
+        }
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
 ```
 
 <br>
