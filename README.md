@@ -17,6 +17,10 @@ Reacton is a JavaScript plugin for quickly building reactive [Web Components](ht
 Below is an example of a simple component:
 
 ```html
+<!-- mount the MyComponent component -->
+<my-component color="red"></my-component>
+
+<!-- create component template MyComponent -->
 <template class="MyComponent">
   <h1>Hello, {{ message }}!</h1>
         
@@ -28,8 +32,13 @@ Below is an example of a simple component:
 
   <script>
     exports = class {
-      message = 'Reacton'
-      color = 'red'
+      // initializing the state object in the constructor
+      constructor(props) {
+        this.message = 'Reacton'
+        this.color = props.color
+      }
+
+      static mode = 'open' // add Shadow DOM
     }
   </script>
 </template>
@@ -864,6 +873,52 @@ To set a new value for this attribute, enter the command:
 
 ```
 mycomp.$props.title = 'Web Components'
+```
+
+To initialize the state of a component using attributes passed to its mount element, the component's constructor uses the **props** parameter, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component message="Reacton" color="red"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <h1>Hello, {{ message }}!</h1>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        // initializing state with values from attributes
+        constructor(props) {
+          this.message = props.message
+          this.color = props.color
+        }
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
 ```
 
 <br>

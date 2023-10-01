@@ -17,6 +17,10 @@ Reacton - это плагин JavaScript для быстрого создани�
 Ниже представлен пример простого компонента:
 
 ```html
+<!-- монтировать компонент MyComponent -->
+<my-component color="red"></my-component>
+
+<!-- создать шаблон компонента MyComponent -->
 <template class="MyComponent">
   <h1>Привет, {{ message }}!</h1>
         
@@ -28,8 +32,13 @@ Reacton - это плагин JavaScript для быстрого создани�
 
   <script>
     exports = class {
-      message = 'Reacton'
-      color = 'red'
+      // инициализация объекта состояния в конструкторе
+      constructor(props) {
+        this.message = 'Reacton'
+        this.color = props.color
+      }
+
+      static mode = 'open' // добавить Теневой DOM
     }
   </script>
 </template>
@@ -864,6 +873,52 @@ mycomp.$props.title
 
 ```
 mycomp.$props.title = 'Веб-компоненты'
+```
+
+Для инициализации состояния компонента с помощью атрибутов передаваемых в его элемент монтирования, в конструкторе компонента используется параметр **props**, как показано ниже:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- монтировать компонент MyComponent -->
+  <my-component message="Reacton" color="red"></my-component>
+
+  <!-- создать шаблон компонента MyComponent -->
+  <template class="MyComponent">
+    <h1>Привет, {{ message }}!</h1>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        // инициализация состояния значениями из атрибутов
+        constructor(props) {
+          this.message = props.message
+          this.color = props.color
+        }
+      }
+    </script>
+  </template>
+
+  <!-- подключить плагин Reacton -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // передать шаблон компонента MyComponent в плагин Reaction
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
 ```
 
 <br>

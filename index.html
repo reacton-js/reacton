@@ -7,7 +7,7 @@
 </head>
 <body>
   <!-- mount the MyComponent component -->
-  <my-component id="mycomp"></my-component>
+  <my-component color="red" id="mycomp"></my-component>
 
   <!-- create component template MyComponent -->
   <template class="MyComponent">
@@ -18,11 +18,14 @@
         color: {{ color }};
       }
     </style>
-
+    
     <script>
       exports = class {
-        message = 'Reacton'
-        color = 'red'
+        // initializing the state object in the constructor
+        constructor(props) {
+          this.message = 'Reacton'
+          this.color = props.color
+        }
 
         static mode = 'open' // add Shadow DOM
       }

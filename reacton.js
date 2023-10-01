@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.2.2
+ * Reacton.js v3.3.0
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -80,13 +80,13 @@
         const events = new WeakMap()
 
         // определить прокси для атрибутов компонента
-        const attrs = new Proxy(this.attributes, attrHooks)
+        const props = new Proxy(this.attributes, attrHooks)
 
         // определить объект для ключей состояния
         const keys = {}
 
         // определить объект с методом доступа к состоянию или свойству компонента
-        const state = new Proxy(new INITClass(), {
+        const state = new Proxy(new INITClass(props), {
           // вернуть значение свойства объекта состояния или компонента
           get: (target, key, receiver) => {
             // если запрашивается символ, то вернуть элемент компонента
@@ -152,7 +152,7 @@
           // возвращает объект состояния компонента
           $state: { get() { if (mode !== 'closed') return state }},
           // возвращает прокси атрибутов компонента
-          $props: { get() { if (mode !== 'closed') return attrs }},
+          $props: { get() { if (mode !== 'closed') return props }},
           // возвращает хозяина теневого DOM компонента
           $host: { get() { if (mode !== 'closed') return root.host }},
           // возвращает Истину, если компонент не содержит теневой DOM
