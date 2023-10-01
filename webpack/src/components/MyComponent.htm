@@ -11,8 +11,11 @@
     import Mixins from '../Mixins'
 
     exports = class extends Mixins {
-      message = 'Reacton'
-      color = 'red'
+      constructor(props) {
+        super()
+        this.message = 'Reacton'
+        this.color = props.color
+      }
 
       static mode = 'open' // add Shadow DOM
     }
