@@ -1244,7 +1244,7 @@ class Methods {
 
 <br>
 
-To create reactive attributes, precede their name with a colon character «:». Expressions in reactive attributes are specified without the use of double curly braces, as opposed to HTML content, for example:
+To create reactive attributes, precede their name with a colon character «:». All reactive attributes are executed in the context of a state object. Expressions in reactive attributes are specified without the use of double curly braces, as opposed to HTML content, for example:
 
 ```html
 <!DOCTYPE html>
