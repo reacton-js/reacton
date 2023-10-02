@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.4.0
+ * Reacton.js v3.4.1
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -623,13 +623,13 @@
 
           // если значение ссылается на функцию
           if (typeof service.state[value] === 'function') {
-            value += '()' // добавить оператор вызова функции
+            value += '(event)' // добавить оператор вызова функции
           }
 
           // если обрабатывается не шаблон цикла
           if (!vars) {
             // определить функцию исполнения для реактивного атрибута
-            callback = service.exec(`() => ${value}`)
+            callback = service.exec(`event => ${value}`)
 
             // установить исполнителя для владельца атрибута
             owner[`on${attr.name.slice(2)}`] = callback
@@ -637,7 +637,7 @@
           // иначе,
           else {
             // определить функцию исполнения для реактивного атрибута в цикле
-            callback = service.exec(`() => ((${vars}) => () => ${value})(${vars})`)
+            callback = service.exec(`() => ((${vars}) => event => ${value})(${vars})`)
 
             // добавить функцию исполнения в хранилище
             service.funcs.set(attr, callback)

@@ -1299,6 +1299,53 @@ class Methods {
 
 <br>
 
+Все атрибуты событий получают неявный параметр [event](https://learn.javascript.ru/introduction-browser-events#obekt-sobytiya), что позволяет обращаться с его помощью к елементам, на которых сработало событие, например, к полям ввода:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- монтировать компонент MyComponent -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- создать шаблон компонента MyComponent -->
+  <template class="MyComponent">
+    <h3>Имя: {{ name }}</h3>
+    <h3>Возраст: {{ age }}</h3>
+      
+    <p>Имя: <input type="text" :value="name" :oninput="changeName"></p>
+    <p>Возраст: <input type="number" min="0" max="120" :value="age" :oninput="this.age = event.target.value"></p>
+
+    <script>
+      exports = class {
+        name = 'Иван'
+        age = 32
+
+        changeName(event) {
+          this.name = event.target.value
+        }
+      }
+    </script>
+  </template>
+
+  <!-- подключить плагин Reacton -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // передать шаблон компонента MyComponent в плагин Reaction
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
+```
+
+<br>
+
 Атрибут [*is*](https://developer.mozilla.org/ru/docs/Web/HTML/Global_attributes/is) используется для монтирования компонентов в стандартные HTML-элементы. Этот атрибут можно сделать реактивным:
 
 ```html

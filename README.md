@@ -1299,6 +1299,53 @@ As you can see from this example, not only simple, but also event attributes and
 
 <br>
 
+All event attributes receive an implicit [event](https://javascript.info/introduction-browser-events#event-object) parameter, which allows you to use it to access the elements on which the event was triggered, for example, input fields:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <h3>Name: {{ name }}</h3>
+    <h3>Age: {{ age }}</h3>
+      
+    <p>Name: <input type="text" :value="name" :oninput="changeName"></p>
+    <p>Age: <input type="number" min="0" max="120" :value="age" :oninput="this.age = event.target.value"></p>
+
+    <script>
+      exports = class {
+        name = 'John'
+        age = 32
+
+        changeName(event) {
+          this.name = event.target.value
+        }
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
+  </script>
+</body>
+</html>
+```
+
+<br>
+
 The [*is*](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/is) attribute is used to mount components into standard HTML elements. This attribute can be made reactive:
 
 ```html
