@@ -1319,7 +1319,7 @@ All event attributes receive an implicit [event](https://javascript.info/introdu
     <h3>Age: {{ age }}</h3>
       
     <p>Name: <input type="text" :value="name" :oninput="changeName"></p>
-    <p>Age: <input type="number" min="0" max="120" :value="age" :oninput="this.age = event.target.value"></p>
+    <p>Age: <input type="number" min="0" max="120" :value="age" :oninput="age = event.target.value"></p>
 
     <script>
       exports = class {

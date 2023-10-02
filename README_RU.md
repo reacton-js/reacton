@@ -1319,7 +1319,7 @@ class Methods {
     <h3>Возраст: {{ age }}</h3>
       
     <p>Имя: <input type="text" :value="name" :oninput="changeName"></p>
-    <p>Возраст: <input type="number" min="0" max="120" :value="age" :oninput="this.age = event.target.value"></p>
+    <p>Возраст: <input type="number" min="0" max="120" :value="age" :oninput="age = event.target.value"></p>
 
     <script>
       exports = class {
