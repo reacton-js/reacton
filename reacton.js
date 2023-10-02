@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.4.1
+ * Reacton.js v3.4.2
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -97,8 +97,11 @@
         // определить функцию поиска элементов по заданному селектору
         const $$ = sel => root.querySelectorAll(sel)
 
+        // определить объект для хранения свойств состояния
+        const object = new INITClass(props)
+
         // определить объект с методом доступа к состоянию или свойству компонента
-        const state = new Proxy(new INITClass(props), {
+        const state = new Proxy(object, {
           // вернуть значение свойства объекта состояния или компонента
           get: (target, key, receiver) => {
             // если запрашивается символ компонента, то вернуть компонент
@@ -194,7 +197,7 @@
         })
 
         // определить объект со служебными свойствами
-        const service = { root, funcs, obsers, bools, events, state, refs }
+        const service = { root, funcs, obsers, bools, events, object, state, refs }
 
         // добавить объект служебных свойств в главное хранилище
         SERVICE.set(this, service)
@@ -622,7 +625,7 @@
           let value = node.value.trim()
 
           // если значение ссылается на функцию
-          if (typeof service.state[value] === 'function') {
+          if (typeof service.object[value] === 'function') {
             value += '(event)' // добавить оператор вызова функции
           }
 
