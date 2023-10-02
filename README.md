@@ -10,6 +10,8 @@
 
 Reacton is a JavaScript plugin for quickly building reactive [Web Components](https://javascript.info/web-components). The plugin supports all technologies, methods and properties such as [slots](https://javascript.info/slots-composition) and [Shadow DOM](https://javascript.info/shadow-dom) that are provided by standard Web Components.
 
+*- Updating the [build](https://github.com/reacton-js/reacton/tree/main/webpack) for [Webpack](https://webpack.js.org/).*
+
 *- Updating the [reactive attributes](#reactive-attributes) section.*
 
 *- In version 3.4.0, a bug in accessing special properties in static methods of closed components was fixed and reference attributes were added for quick access to elements.*
