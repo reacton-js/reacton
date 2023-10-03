@@ -1498,9 +1498,9 @@ This can be used, for example, to assign custom event handlers to elements:
 
 <br>
 
-Reacton supports three kinds of *"for"* loops that are implemented in JavaScript. They are all defined with a special ***$for*** attribute and output the contents of their HTML elements as many times as required by the loop condition.
+Reacton supports three kinds of *«for»* loops that are implemented in JavaScript. They are all defined with a special ***$for*** attribute and output the contents of their HTML elements as many times as required by the loop condition.
 
-In the example below, the *"for"* loop outputs 10 paragraphs with numbers from 0 to 9:
+In the example below, the *«for»* loop outputs 10 paragraphs with numbers from 0 to 9:
 
 ```html
 <!DOCTYPE html>
@@ -1544,7 +1544,7 @@ The ***$for*** special attribute cannot use variable definition operators: *var*
 
 <br>
 
-The *"for-in"* loop is used to output the contents of objects, as shown below:
+The *«for-in»* loop is used to output the contents of objects, as shown below:
 
 ```html
 <!-- create component template MyComponent -->
@@ -1569,7 +1569,7 @@ The *"for-in"* loop is used to output the contents of objects, as shown below:
 
 <br>
 
-The *"for-of"* loop is designed to work with arrays:
+The *«for-of»* loop is designed to work with arrays:
 
 ```html
 <!-- create component template MyComponent -->
