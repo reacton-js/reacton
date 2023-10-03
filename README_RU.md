@@ -1282,7 +1282,7 @@ class Methods {
         hide = false
 
         changeMessage() {
-          return this.message = 'Веб-компоненты'
+          this.message = 'Веб-компоненты'
         }
       }
     </script>

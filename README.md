@@ -1282,7 +1282,7 @@ To create reactive attributes, precede their name with a colon character «:». 
         hide = false
 
         changeMessage() {
-          return this.message = 'Web Components'
+          this.message = 'Web Components'
         }
       }
     </script>
