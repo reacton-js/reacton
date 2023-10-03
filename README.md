@@ -14,7 +14,7 @@ Reacton is a JavaScript plugin for quickly building reactive [Web Components](ht
 
 *- Updating the [reactive attributes](#reactive-attributes) section.*
 
-*- In version 3.4.0, a bug in accessing special properties in static methods of closed components was fixed and reference attributes were added for quick access to elements.*
+*- In version 3.4.0, a bug in accessing [special properties](#special-properties) in static methods of closed components was fixed and [reference attributes](#reference-attributes) were added for quick access to elements.*
 
 *- Added a [loader](https://www.npmjs.com/package/reacton-loader) of single-file components for [Webpack](https://webpack.js.org/).*
 
@@ -999,7 +999,7 @@ Inside the string of the static property **template**, access to the properties 
 
 <br>
 
-The **$()** method is a shorthand analog of the [querySelector()](https://javascript.info/searching-elements-dom#querySelector) method and is used for quick access to a component's DOM element. For closed components, calling this method from outside of static methods returns «null».
+The **$()** method is a shorthand analog of the [querySelector()](https://javascript.info/searching-elements-dom#querySelector) method and is used for quick access to a component's DOM element. For closed components, calling this method from outside of static methods returns «undefined».
 
 For example, to assign an event listener:
 
@@ -1011,7 +1011,7 @@ static connected() {
 }
 ```
 
-The **$$()** method is a shorthand analog of the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method and is used for quick access to a component's DOM element. For closed components, calling this method from outside of static methods returns «null».
+The **$$()** method is a shorthand analog of the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method and is used for quick access to a component's DOM element. For closed components, calling this method from outside of static methods returns «undefined».
 
 For example, to iterate over a collection of elements:
 
@@ -1046,7 +1046,7 @@ static async template() {
 
 <br>
 
-The **$event()** method is used to create custom events that allow different components to interact with each other, and the **\$route()** method is used to build routing. They will be considered later, since they require separate chapters for their explanation.
+The **$event()** method is used to create custom events that allow different components to interact with each other, and the **\$route()** method is used to build routing. The **\$refs** property allows you to access elements using reference attributes. They will be considered later, since they require separate chapters for their explanation.
 
 <br>
 <br>
@@ -1438,6 +1438,8 @@ To quickly access elements within a component, you can use reference attributes 
 ```html
 <h1 #hello>Hello, {{ message }}!</h1>
 ```
+
+For closed components, calling this property from outside of static methods returns «undefined».
 
 In this example, the H1 element has been assigned the link attribute ***hello***. To get the element to which the attribute has been assigned, the special property **$refs** is used, which is an object containing all the reference attributes of the component and the elements they refer to.
 
