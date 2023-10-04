@@ -261,7 +261,7 @@ In this example, the name of the component class is determined from the name of 
 
 <br>
 
-Components can be created in external files, which is especially useful when using build systems. You can customize your own or [download](https://github.com/reacton-js/reacton/tree/main/webpack) a ready-made build system based on [webpack](https://webpack.js.org/).
+Components can be created in external files, which is especially useful when using build systems. You can customize your own or [download](https://github.com/reacton-js/reacton/tree/main/webpack) a ready-made build system based on [Webpack](https://webpack.js.org/).
 
 Create a *MyComponent.htm* file in the *app* directory with the following content:
 
@@ -328,13 +328,15 @@ Now navigate to the *app* directory using a terminal or open a terminal in that 
 lite-server
 ```
 
+This will open a default browser window displaying the welcome message shown above.
+
 <br>
 <br>
 <h2 id="component-class">Component class</h2>
 
 <br>
 
-The name of the component class defines the name of the component in the DOM. For example, the class MyComponent or myComponent will match the name *my-component* in the DOM. Each component class may contain an optional static property **name** that defines the name of this class.
+The component class name determines the name of the component element in the DOM. For example, the class MyComponent or myComponent will match the name *my-component* in the DOM. Each component class may contain an optional static property **name** that defines the name of this class.
 
 This property must be specified, for example, when passing an anonymous class directly to a plugin:
 
@@ -446,16 +448,19 @@ static template = `
 
 To display the properties of the state object, or any other expression, double curly braces are used.
 
-The **template** static property can be a method that executes in the context of the component's state object, which allows you to refer to the properties of that object using the *this* keyword and using template literals, for example:
+The **template** static property can be a method that executes in the context of the component's state object, which allows you to refer to the properties of that object using the *this* keyword and using [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals), for example:
 
 ```js
 static template() {
+  const message = this.message
+  const color = this.color
+
   return `
-    <h1>Hello, {{ message }}!</h1>
+    <h1>Hello, ${message}!</h1>
     
     <style>
       h1 {
-        color: {{ color }};
+        color: ${color};
       }
     </style>
   `
@@ -467,6 +472,8 @@ Inside template literals, you can use [substitutions](https://developer.mozilla.
 ```js
 ${ 5 + 6 }
 ```
+
+However, with this method of specifying values, the reactivity of the specified properties of the state object is lost. Reactive states are defined only inside double curly braces or inside [reactive attributes](#reactive-attributes).
 
 The **template()** method, like all the static methods of the component class discussed below, can be asynchronous. The example below simulates downloading data from the server:
 
@@ -540,7 +547,7 @@ class MyComponent {
 }
 ```
 
-This type of component is the most secure, since access to the state and DOM of such a component is possible only from static methods or a class template.
+This type of component is the most secure, since access to the state and DOM of such a component is possible only from static methods or inside double curly braces of the component's contents.
 
 <br>
 
@@ -689,7 +696,7 @@ The initial state values are defined in the tracked attributes ***message*** and
 <my-component id="mycomp" message="Reacton" color="red"></my-component>
 ```
 
-The assignment of these values to properties of the state object occurs in the **changed()** method, which is called every time values are assigned/changed to tracked attributes:
+The assignment of these values to properties of the state object occurs in the **changed()** method, which is called every time values are Assigned/Changed to tracked attributes:
 
 ```js
 // called when the tracked attribute changes
@@ -820,7 +827,7 @@ Error: Value must be a number...
 
 <br>
 
-Unlike methods and properties defined by the user in the component class, special methods and properties are defined at the internal level of the component and always start with a dollar sign. It is not recommended to give states names that are the same as special property names. This may lead to errors.
+Unlike methods and properties defined by the user in the component class, special methods and properties are defined at the internal level of the component and always start with a dollar sign. It is not recommended to give states names that are the same as special property names. *This may lead to errors!*
 
 The **$shadow** property returns the [Shadow DOM](https://javascript.info/shadow-dom) of the component, which is created if the **mode** static property was defined in the component class:
 
@@ -930,7 +937,7 @@ To initialize the state of a component using attributes passed to its mount elem
 
 <br>
 
-The **$state** property allows you to get/set the value of any state directly. For closed components, calling this property from outside of static methods returns «undefined».
+The **$state** property allows you to Get/Set the value of any state property. For closed components, calling this property from outside of static methods returns «undefined».
 
 To get the state value of **message**, enter the command in the browser console:
 
@@ -955,7 +962,13 @@ Thanks to this, any property of the component can be accessed from the state obj
 mycomp.$state.attributes['id'].value
 ```
 
-Inside the string of the static property **template**, access to the properties of the component, and not the state, for example, to the property [attributes](https://developer.mozilla.org/en-US/docs/Web/API/Element/attributes), is carried out using the keyword *this*, as shown below:
+Inside double curly braces, access to the properties of the component, and not the state, for example, to the property [attributes](https://developer.mozilla.org/en-US/docs/Web/API/Element/attributes), is carried only using the *this* keyword:
+
+```js
+{{ this.attributes['id'].value.toUpperCase() }}
+```
+
+As shown in the example below:
 
 ```html
 <!DOCTYPE html>
@@ -969,29 +982,31 @@ Inside the string of the static property **template**, access to the properties 
   <!-- mount the MyComponent component -->
   <my-component id="mycomp"></my-component>
 
+  <!-- create component template MyComponent -->
+  <template class="MyComponent">
+    <h1>Hello, {{ message }} 
+      from the {{ this.attributes['id'].value.toUpperCase() }} component!</h1>
+          
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        message = 'Reacton'
+        color = 'red'
+      }
+    </script>
+  </template>
+
   <!-- include Reacton plugin -->
   <script src="reacton.min.js"></script>
 
   <script>
-    // create component class MyComponent
-    class MyComponent {
-      message = 'Reacton'
-      color = 'red'
-
-      static template = `
-        <h1>Hello, {{ message }} 
-          from the {{ this.attributes['id'].value.toUpperCase() }} component!</h1>
-        
-        <style>
-          h1 {
-            color: {{ color }};
-          }
-        </style>
-      `
-    }
-
-    // pass component class MyComponent to Reacton plugin
-    Reacton(MyComponent)
+    // pass component template MyComponent to Reaction plugin
+    Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
 </html>
@@ -1001,7 +1016,7 @@ Inside the string of the static property **template**, access to the properties 
 
 The **$()** method is a shorthand analog of the [querySelector()](https://javascript.info/searching-elements-dom#querySelector) method and is used for quick access to a component's DOM element. For closed components, calling this method from outside of static methods returns «undefined».
 
-For example, to assign an event listener:
+The method is used, for example, to assign an event listener:
 
 ```js
 // called when the component is added to the document
@@ -1013,7 +1028,7 @@ static connected() {
 
 The **$$()** method is a shorthand analog of the [querySelectorAll()](https://javascript.info/searching-elements-dom#querySelectorAll) method and is used for quick access to a component's DOM element. For closed components, calling this method from outside of static methods returns «undefined».
 
-For example, to iterate over a collection of elements:
+This method is used, for example, to iterate over a collection of elements:
 
 ```js
 // called when the component is added to the document
@@ -1231,7 +1246,7 @@ This method is also used when defining components in &lt;template&gt; tags, for 
 </html>
 ```
 
-When defining components in &lt;template&gt; tags, the super class must be globally accessible:
+When defining components in &lt;template&gt; tags, the super class:
 
 ```js
 // create a Methods class to store common methods
@@ -1241,6 +1256,8 @@ class Methods {
   }
 }
 ```
+
+must be [globally](https://javascript.info/global-object) accessible.
 
 <br>
 <br>
