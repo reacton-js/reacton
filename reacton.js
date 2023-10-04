@@ -1,5 +1,5 @@
 /*!
- * Reacton.js v3.4.2
+ * Reacton.js v3.4.3
  * (c) 2022-2023 | github.com/reacton-js
  * Released under the MIT License.
  */
@@ -283,9 +283,9 @@
       }
 
       // вызывается при изменении одного из отслеживаемых атрибутов
-      async attributeChangedCallback(...args) {
+      attributeChangedCallback(...args) {
         // если была определена статическая функция "changed"
-        await (!INITClass.changed || INITClass.changed.apply(SERVICE.get(this).state, args))
+        setTimeout(() => !INITClass.changed || INITClass.changed.apply(SERVICE.get(this).state, args), 0)
       }
 
       // массив имён атрибутов для отслеживания их изменений
