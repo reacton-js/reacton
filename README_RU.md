@@ -4,7 +4,7 @@
 
 ![reacton](https://raw.githubusercontent.com/reacton-js/reacton/main/logo.png)
 
-[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.min.js)
+[GitHub](https://github.com/reacton-js/reacton) | [GitFlic](https://gitflic.ru/project/reacton/reacton-js) | [NpmJS](https://www.npmjs.com/package/reacton-js) | [Loader🔄](https://www.npmjs.com/package/reacton-loader) | [Reacton⤵️](https://raw.githubusercontent.com/reacton-js/reacton/main/reacton.min.js)
 
 <br>
 
