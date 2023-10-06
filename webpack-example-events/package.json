@@ -13,7 +13,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "jsdom": "^22.1.0",
-    "reacton-js": "^3.4.15"
+    "reacton-js": "^3.4.16"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",

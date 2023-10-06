@@ -2490,11 +2490,11 @@ static template = `
 `
 ```
 
-Создайте новый компонент страницы myUsers:
+Создайте новый компонент страницы MyUsers:
 
 ```js
-// создать класс компонента myUsers
-class myUsers {
+// создать класс компонента MyUsers
+class MyUsers {
   static extends = 'div' // элемент монтирования
   static mode = 'open' // добавить Теневой DOM
 
@@ -2511,7 +2511,7 @@ class myUsers {
 static mode = 'open' // добавить Теневой DOM
 ```
 
-Кроме этого, Теневой DOM необходимо добавить и всем остальным компонентам страниц, чтобы передаваемое через слоты HTML-содержимое в компонент myUsers, в них не отображалось:
+Кроме этого, Теневой DOM необходимо добавить и всем остальным компонентам страниц, чтобы передаваемое через слоты HTML-содержимое в компонент MyUsers, в них не отображалось:
 
 ```js
 // создать класс компонента MyHome
@@ -2540,7 +2540,7 @@ class MyContacts {
 
 ```js
 // передать классы компонентов в плагин Reacton
-Reacton(MyHome, MyAbout, MyContacts, myUsers, MyMenu, MyContent)
+Reacton(MyHome, MyAbout, MyContacts, MyUsers, MyMenu, MyContent)
 ```
 
 Внесите изменения в разметку компонента MyContent, добавив вывод HTML-содержимого в именованные слоты с помощью атрибута [slot](https://learn.javascript.ru/slots-composition#imenovannye-sloty), как показано ниже:
@@ -2686,7 +2686,7 @@ document.querySelector('#mymenu').addEventListener('click', () => {
 })
 
 // передать классы компонентов в плагин Reacton
-Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
+Reacton(MyHome, MyAbout, MyContacts, MyUsers, MyContent)
 ```
 
 Внутри этого обработчика, адресное событие для элемента myRoute вызывается с помощью метода **route()** самого плагина:
@@ -2749,8 +2749,8 @@ Reacton.route(myRoute, event.target.href)
       static template = '<h2>Контакты</h2>'
     }
 
-    // создать класс компонента myUsers
-    class myUsers {
+    // создать класс компонента MyUsers
+    class MyUsers {
       static extends = 'div' // элемент монтирования
       static mode = 'open' // добавить Теневой DOM
 
@@ -2819,7 +2819,7 @@ Reacton.route(myRoute, event.target.href)
     })
 
     // передать классы компонентов в плагин Reacton
-    Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
+    Reacton(MyHome, MyAbout, MyContacts, MyUsers, MyContent)
   </script>
 </body>
 </html>

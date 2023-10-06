@@ -2490,11 +2490,11 @@ static template = `
 `
 ```
 
-Create a new page component myUsers:
+Create a new page component MyUsers:
 
 ```js
-// create component class myUsers
-class myUsers {
+// create component class MyUsers
+class MyUsers {
   static extends = 'div' // mounting element
   static mode = 'open' // add Shadow DOM
 
@@ -2511,7 +2511,7 @@ Since this component will receive HTML content from the outside in the [slots](h
 static mode = 'open' // add Shadow DOM
 ```
 
-In addition, the Shadow DOM must be added to all other pages components so that the HTML content passed through the slots to the myUsers component is not displayed in them:
+In addition, the Shadow DOM must be added to all other pages components so that the HTML content passed through the slots to the MyUsers component is not displayed in them:
 
 ```js
 // create component class MyHome
@@ -2540,7 +2540,7 @@ Pass the class of the new component to the Reacton plugin:
 
 ```js
 // pass component classes to Reacton plugin
-Reacton(MyHome, MyAbout, MyContacts, myUsers, MyMenu, MyContent)
+Reacton(MyHome, MyAbout, MyContacts, MyUsers, MyMenu, MyContent)
 ```
 
 Modify the markup of the MyContent component by adding HTML output to named slots using the [slot](https://javascript.info/slots-composition#named-slots) attribute, as shown below:
@@ -2686,7 +2686,7 @@ document.querySelector('#mymenu').addEventListener('click', () => {
 })
 
 // pass component classes to Reacton plugin
-Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
+Reacton(MyHome, MyAbout, MyContacts, MyUsers, MyContent)
 ```
 
 Inside this handler, the address event for the myRoute element is called using the **route()** method of the plugin itself:
@@ -2749,8 +2749,8 @@ Below is the full content of the *index.html* file:
       static template = '<h2>Contacts</h2>'
     }
 
-    // create component class myUsers
-    class myUsers {
+    // create component class MyUsers
+    class MyUsers {
       static extends = 'div' // mounting element
       static mode = 'open' // add Shadow DOM
 
@@ -2819,7 +2819,7 @@ Below is the full content of the *index.html* file:
     })
 
     // pass component classes to Reacton plugin
-    Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
+    Reacton(MyHome, MyAbout, MyContacts, MyUsers, MyContent)
   </script>
 </body>
 </html>
