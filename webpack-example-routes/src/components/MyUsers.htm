@@ -1,0 +1,11 @@
+<my-users>
+  <slot name="user"></slot>
+  <slot name="age"></slot>
+
+  <script>
+    exports = class {
+      static extends = 'div' // mounting element
+      static mode = 'open' // add Shadow DOM
+    }
+  </script>
+</my-users>

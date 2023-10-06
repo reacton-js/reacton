@@ -10,6 +10,8 @@
 
 Reacton is a JavaScript plugin for quickly building reactive [Web Components](https://javascript.info/web-components). The plugin supports all technologies, methods and properties such as [slots](https://javascript.info/slots-composition) and [Shadow DOM](https://javascript.info/shadow-dom) that are provided by standard Web Components.
 
+*- [Added](https://github.com/reacton-js/reacton/tree/main/webpack-example-routes) example [Webpack](https://webpack.js.org/) build for [routes](#routes).*
+
 *- [Added](https://github.com/reacton-js/reacton/tree/main/webpack-example-events) example [Webpack](https://webpack.js.org/) build for [events](#events).*
 
 *- Updating the [build](https://github.com/reacton-js/reacton/tree/main/webpack) for [Webpack](https://webpack.js.org/).*
@@ -2131,20 +2133,20 @@ Make changes to the *index.html* file as shown below:
     // create event element myRoute
     const myRoute = new Reacton.route()
 
-    // create component class myHome
-    class myHome {
+    // create component class MyHome
+    class MyHome {
       static extends = 'div' // mounting element
       static template = '<h2>Home</h2>'
     }
 
-    // create component class myAbout
-    class myAbout {
+    // create component class MyAbout
+    class MyAbout {
       static extends = 'div' // mounting element
       static template = '<h2>About</h2>'
     }
 
-    // create component class myContacts
-    class myContacts {
+    // create component class MyContacts
+    class MyContacts {
       static extends = 'div' // mounting element
       static template = '<h2>Contacts</h2>'
     }
@@ -2197,7 +2199,7 @@ Make changes to the *index.html* file as shown below:
     }
 
     // pass component classes to Reacton plugin
-    Reacton(myHome, myAbout, myContacts, MyMenu, MyContent)
+    Reacton(MyHome, MyAbout, MyContacts, MyMenu, MyContent)
   </script>
 </body>
 </html>
@@ -2233,20 +2235,20 @@ This element will be assigned address event handlers in some components and call
 Then we have the definition of the three components of the pages:
 
 ```js
-// create component class myHome
-class myHome {
+// create component class MyHome
+class MyHome {
   static extends = 'div' // mounting element
   static template = '<h2>Home</h2>'
 }
 
-// create component class myAbout
-class myAbout {
+// create component class MyAbout
+class MyAbout {
   static extends = 'div' // mounting element
   static template = '<h2>About</h2>'
 }
 
-// create component class myContacts
-class myContacts {
+// create component class MyContacts
+class MyContacts {
   static extends = 'div' // mounting element
   static template = '<h2>Contacts</h2>'
 }
@@ -2363,17 +2365,17 @@ At the very beginning of this component's class, an initial state value of **pag
 page = 'my-home' // initial state value
 ```
 
-It matches the name of the myHome page component:
+It matches the name of the MyHome page component:
 
 ```js
-// create component class myHome
-class myHome {
+// create component class MyHome
+class MyHome {
   static extends = 'div' // mounting element
   static template = '<h2>Home</h2>'
 }
 ```
 
-In the HTML markup of the MyContent component, the myHome component is created using the ***is*** reactive attribute:
+In the HTML markup of the MyContent component, the MyHome component is created using the ***is*** reactive attribute:
 
 ```js
 // components mount element
@@ -2512,22 +2514,22 @@ static mode = 'open' // add Shadow DOM
 In addition, the Shadow DOM must be added to all other pages components so that the HTML content passed through the slots to the myUsers component is not displayed in them:
 
 ```js
-// create component class myHome
-class myHome {
+// create component class MyHome
+class MyHome {
   static extends = 'div' // mounting element
   static mode = 'open' // add Shadow DOM
   static template = '<h2>Home</h2>'
 }
 
-// create component class myAbout
-class myAbout {
+// create component class MyAbout
+class MyAbout {
   static extends = 'div' // mounting element
   static mode = 'open' // add Shadow DOM
   static template = '<h2>About</h2>'
 }
 
-// create component class myContacts
-class myContacts {
+// create component class MyContacts
+class MyContacts {
   static extends = 'div' // mounting element
   static mode = 'open' // add Shadow DOM
   static template = '<h2>Contacts</h2>'
@@ -2538,7 +2540,7 @@ Pass the class of the new component to the Reacton plugin:
 
 ```js
 // pass component classes to Reacton plugin
-Reacton(myHome, myAbout, myContacts, MyMenu, MyContent, myUsers)
+Reacton(MyHome, MyAbout, MyContacts, myUsers, MyMenu, MyContent)
 ```
 
 Modify the markup of the MyContent component by adding HTML output to named slots using the [slot](https://javascript.info/slots-composition#named-slots) attribute, as shown below:
@@ -2684,7 +2686,7 @@ document.querySelector('#mymenu').addEventListener('click', () => {
 })
 
 // pass component classes to Reacton plugin
-Reacton(myHome, myAbout, myContacts, MyContent, myUsers)
+Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
 ```
 
 Inside this handler, the address event for the myRoute element is called using the **route()** method of the plugin itself:
@@ -2726,22 +2728,22 @@ Below is the full content of the *index.html* file:
     // create event element myRoute
     const myRoute = new Reacton.route()
 
-    // create component class myHome
-    class myHome {
+    // create component class MyHome
+    class MyHome {
       static extends = 'div' // mounting element
       static mode = 'open' // add Shadow DOM
       static template = '<h2>Home</h2>'
     }
 
-    // create component class myAbout
-    class myAbout {
+    // create component class MyAbout
+    class MyAbout {
       static extends = 'div' // mounting element
       static mode = 'open' // add Shadow DOM
       static template = '<h2>About</h2>'
     }
 
-    // create component class myContacts
-    class myContacts {
+    // create component class MyContacts
+    class MyContacts {
       static extends = 'div' // mounting element
       static mode = 'open' // add Shadow DOM
       static template = '<h2>Contacts</h2>'
@@ -2817,7 +2819,7 @@ Below is the full content of the *index.html* file:
     })
 
     // pass component classes to Reacton plugin
-    Reacton(myHome, myAbout, myContacts, MyContent, myUsers)
+    Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
   </script>
 </body>
 </html>

@@ -10,6 +10,8 @@
 
 Reacton - это плагин JavaScript для быстрого создания реактивных [Веб-компонентов](https://learn.javascript.ru/web-components). Плагин поддерживает все технологии, методы и свойства, такие, например, как [слоты](https://learn.javascript.ru/slots-composition) и [Теневой DOM](https://learn.javascript.ru/shadow-dom), которые предоставляются стандартными Веб-компонентами.
 
+*- [Добавлен](https://github.com/reacton-js/reacton/tree/main/webpack-example-routes) пример сборки [Webpack](https://webpack.js.org/) для [маршрутов](#routes).*
+
 *- [Добавлен](https://github.com/reacton-js/reacton/tree/main/webpack-example-events) пример сборки [Webpack](https://webpack.js.org/) для [событий](#events).*
 
 *- Обновление [сборки](https://github.com/reacton-js/reacton/tree/main/webpack) для [Webpack](https://webpack.js.org/).*
@@ -2131,20 +2133,20 @@ Reacton.event(myEvent, 'clear-colors')
     // создать элемент события myRoute
     const myRoute = new Reacton.route()
 
-    // создать класс компонента myHome
-    class myHome {
+    // создать класс компонента MyHome
+    class MyHome {
       static extends = 'div' // элемент монтирования
       static template = '<h2>Главная</h2>'
     }
 
-    // создать класс компонента myAbout
-    class myAbout {
+    // создать класс компонента MyAbout
+    class MyAbout {
       static extends = 'div' // элемент монтирования
       static template = '<h2>О нас</h2>'
     }
 
-    // создать класс компонента myContacts
-    class myContacts {
+    // создать класс компонента MyContacts
+    class MyContacts {
       static extends = 'div' // элемент монтирования
       static template = '<h2>Контакты</h2>'
     }
@@ -2197,7 +2199,7 @@ Reacton.event(myEvent, 'clear-colors')
     }
 
     // передать классы компонентов в плагин Reacton
-    Reacton(myHome, myAbout, myContacts, MyMenu, MyContent)
+    Reacton(MyHome, MyAbout, MyContacts, MyMenu, MyContent)
   </script>
 </body>
 </html>
@@ -2233,20 +2235,20 @@ const myRoute = new Reacton.route()
 Затем у нас происходит определение трёх компонентов страниц:
 
 ```js
-// создать класс компонента myHome
-class myHome {
+// создать класс компонента MyHome
+class MyHome {
   static extends = 'div' // элемент монтирования
   static template = '<h2>Главная</h2>'
 }
 
-// создать класс компонента myAbout
-class myAbout {
+// создать класс компонента MyAbout
+class MyAbout {
   static extends = 'div' // элемент монтирования
   static template = '<h2>О нас</h2>'
 }
 
-// создать класс компонента myContacts
-class myContacts {
+// создать класс компонента MyContacts
+class MyContacts {
   static extends = 'div' // элемент монтирования
   static template = '<h2>Контакты</h2>'
 }
@@ -2363,17 +2365,17 @@ class MyContent {
 page = 'my-home' // начальное значение состояния
 ```
 
-Оно соответствует названию компонента страницы myHome:
+Оно соответствует названию компонента страницы MyHome:
 
 ```js
-// создать класс компонента myHome
-class myHome {
+// создать класс компонента MyHome
+class MyHome {
   static extends = 'div' // элемент монтирования
   static template = '<h2>Главная</h2>'
 }
 ```
 
-В HTML-разметке компонента MyContent происходит создание компонента myHome с помощью реактивного атрибута ***is***:
+В HTML-разметке компонента MyContent происходит создание компонента MyHome с помощью реактивного атрибута ***is***:
 
 ```js
 // элемент монтирования компонентов
@@ -2512,22 +2514,22 @@ static mode = 'open' // добавить Теневой DOM
 Кроме этого, Теневой DOM необходимо добавить и всем остальным компонентам страниц, чтобы передаваемое через слоты HTML-содержимое в компонент myUsers, в них не отображалось:
 
 ```js
-// создать класс компонента myHome
-class myHome {
+// создать класс компонента MyHome
+class MyHome {
   static extends = 'div' // элемент монтирования
   static mode = 'open' // добавить Теневой DOM
   static template = '<h2>Главная</h2>'
 }
 
-// создать класс компонента myAbout
-class myAbout {
+// создать класс компонента MyAbout
+class MyAbout {
   static extends = 'div' // элемент монтирования
   static mode = 'open' // добавить Теневой DOM
   static template = '<h2>О нас</h2>'
 }
 
-// создать класс компонента myContacts
-class myContacts {
+// создать класс компонента MyContacts
+class MyContacts {
   static extends = 'div' // элемент монтирования
   static mode = 'open' // добавить Теневой DOM
   static template = '<h2>Контакты</h2>'
@@ -2538,7 +2540,7 @@ class myContacts {
 
 ```js
 // передать классы компонентов в плагин Reacton
-Reacton(myHome, myAbout, myContacts, MyMenu, MyContent, myUsers)
+Reacton(MyHome, MyAbout, MyContacts, myUsers, MyMenu, MyContent)
 ```
 
 Внесите изменения в разметку компонента MyContent, добавив вывод HTML-содержимого в именованные слоты с помощью атрибута [slot](https://learn.javascript.ru/slots-composition#imenovannye-sloty), как показано ниже:
@@ -2684,7 +2686,7 @@ document.querySelector('#mymenu').addEventListener('click', () => {
 })
 
 // передать классы компонентов в плагин Reacton
-Reacton(myHome, myAbout, myContacts, MyContent, myUsers)
+Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
 ```
 
 Внутри этого обработчика, адресное событие для элемента myRoute вызывается с помощью метода **route()** самого плагина:
@@ -2726,22 +2728,22 @@ Reacton.route(myRoute, event.target.href)
     // создать элемент события myRoute
     const myRoute = new Reacton.route()
 
-    // создать класс компонента myHome
-    class myHome {
+    // создать класс компонента MyHome
+    class MyHome {
       static extends = 'div' // элемент монтирования
       static mode = 'open' // добавить Теневой DOM
       static template = '<h2>Главная</h2>'
     }
 
-    // создать класс компонента myAbout
-    class myAbout {
+    // создать класс компонента MyAbout
+    class MyAbout {
       static extends = 'div' // элемент монтирования
       static mode = 'open' // добавить Теневой DOM
       static template = '<h2>О нас</h2>'
     }
 
-    // создать класс компонента myContacts
-    class myContacts {
+    // создать класс компонента MyContacts
+    class MyContacts {
       static extends = 'div' // элемент монтирования
       static mode = 'open' // добавить Теневой DOM
       static template = '<h2>Контакты</h2>'
@@ -2817,7 +2819,7 @@ Reacton.route(myRoute, event.target.href)
     })
 
     // передать классы компонентов в плагин Reacton
-    Reacton(myHome, myAbout, myContacts, MyContent, myUsers)
+    Reacton(MyHome, MyAbout, MyContacts, myUsers, MyContent)
   </script>
 </body>
 </html>
