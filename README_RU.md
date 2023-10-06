@@ -10,6 +10,8 @@
 
 Reacton - это плагин JavaScript для быстрого создания реактивных [Веб-компонентов](https://learn.javascript.ru/web-components). Плагин поддерживает все технологии, методы и свойства, такие, например, как [слоты](https://learn.javascript.ru/slots-composition) и [Теневой DOM](https://learn.javascript.ru/shadow-dom), которые предоставляются стандартными Веб-компонентами.
 
+*- [Добавлен](https://github.com/reacton-js/reacton/tree/main/webpack-example-events) пример сборки [Webpack](https://webpack.js.org/) для [событий](#events).*
+
 *- Обновление [сборки](https://github.com/reacton-js/reacton/tree/main/webpack) для [Webpack](https://webpack.js.org/).*
 
 *- Обновление раздела [реактивные атрибуты](#reactive-attributes).*

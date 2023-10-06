@@ -1,0 +1,34 @@
+<my-component>
+  <button #reverse>Reverse array</button>
+  <button #new>New array</button>
+  <button #clear>Clear array</button>
+
+  <script>
+    import { myEvent } from '../Events'
+
+    exports = class {
+      static connected() {
+        // add a "click" event handler for the button
+        this.$refs.reverse.addEventListener('click', () => {
+          // trigger "reverse" event on element myEvent
+          this.$event(myEvent, 'reverse')
+        })
+
+        // add a "click" event handler for the button
+        this.$refs.new.addEventListener('click', () => {
+          // trigger "new-colors" event on element myEvent
+          this.$event(myEvent, 'new-colors', {
+            // pass a new array to the event handler
+            detail: ['blue', 'orange', 'purple', 'gold']
+          })
+        })
+
+        // add a "click" event handler for the button
+        this.$refs.clear.addEventListener('click', () => {
+          // trigger "clear-colors" event on element myEvent
+          this.$event(myEvent, 'clear-colors')
+        })
+      }
+    }
+  </script>
+</my-component>

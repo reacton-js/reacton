@@ -1,0 +1,30 @@
+<new-component>
+  <ul $for="col of colors">
+    <li>{{ col }}</li>
+  </ul>
+
+  <script>
+    import { myEvent } from '../Events'
+
+    exports = class {
+      colors = ['red', 'green', 'blue']
+
+      static connected() {
+        // add a "reverse" event handler to the myEvent element
+        myEvent.addEventListener('reverse', () => {
+          this.colors.reverse() // reverse array
+        })
+
+        // add a "new-colors" event handler to the myEvent element
+        myEvent.addEventListener('new-colors', event => {
+          this.colors = event.detail // assign new array
+        })
+        
+        // add a "clear-colors" event handler to the myEvent element
+        myEvent.addEventListener('clear-colors', event => {
+          this.colors.length = 0 //  clear array
+        })
+      }
+    }
+  </script>
+</new-component>
