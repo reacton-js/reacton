@@ -1520,7 +1520,7 @@ This can be used, for example, to assign custom event handlers to elements:
 
 <br>
 
-To pass data from parent components to child components, you can use [slots](https://javascript.info/slots-composition), [attributes](https://javascript.info/dom-attributes-and-properties#html-attributes), and [events](#events). Slots and attributes allow you to transfer only text data, but with the help of events, you can exchange any data between any components, not just child ones.
+To pass data from parent components to child components, you can use [slots](#slots), [attributes](#reactive-attributes), and [events](#events). Slots and attributes allow you to transfer only text data, but with the help of events, you can exchange any data between any components, not just child ones.
 
 Make changes to the *index.html* file, as shown below:
 
