@@ -62,12 +62,13 @@ Below is an example of a simple component:
 4. [General methods](#general-methods)
 5. [Reactive attributes](#reactive-attributes)
 6. [Reference attributes](#reference-attributes)
-7. [Cycles](#cycles)
-8. [Styles](#styles)
-9. [Slots](#slots)
-10. [Events](#events)
-11. [Routes](#routes)
-12. [SSR](#ssr)
+7. [Child components](#child-components)
+8. [Cycles](#cycles)
+9. [Styles](#styles)
+10. [Slots](#slots)
+11. [Events](#events)
+12. [Routes](#routes)
+13. [SSR](#ssr)
 
 <br>
 <hr>
@@ -254,7 +255,7 @@ Make changes to the *index.html* file, as shown below:
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
@@ -311,7 +312,7 @@ Make changes to the *index.html* file, as shown below:
     // get the text content of a file
     const MyComponent = await response.text()
 
-    // pass contents of MyComponent component file to Reaction plugin
+    // pass contents of MyComponent component file to Reacton plugin
     Reacton(MyComponent)
   </script>
 </body>
@@ -932,7 +933,7 @@ To initialize the state of a component using attributes passed to its mount elem
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
@@ -1009,7 +1010,7 @@ As shown in the example below:
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
@@ -1313,7 +1314,7 @@ To create reactive attributes, precede their name with a colon character «:». 
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
@@ -1362,7 +1363,7 @@ All event attributes receive an implicit [event](https://javascript.info/introdu
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
@@ -1506,12 +1507,122 @@ This can be used, for example, to assign custom event handlers to elements:
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
 </html>
 ```
+
+<br>
+<br>
+<h2 id="child-components">Child components</h2>
+
+<br>
+
+To pass data from parent components to child components, you can use [slots](https://javascript.info/slots-composition), [attributes](https://javascript.info/dom-attributes-and-properties#html-attributes), and [events](#events). Slots and attributes allow you to transfer only text data, but with the help of events, you can exchange any data between any components, not just child ones.
+
+Make changes to the *index.html* file, as shown below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacton</title>
+</head>
+<body>
+  <!-- mount the MyComponent component -->
+  <my-component id="mycomp"></my-component>
+
+  <!-- create component template MyComponent -->
+  <template class="MyComponent template">
+    <!-- mount the SubComponent component -->
+    <sub-component :color="color">
+      <h1>Hello, {{ message }}!</h1>
+    </sub-component>
+
+    <script>
+      exports = class {
+        message = 'Reacton'
+        color = 'red'
+      }
+    </script>
+  </template>
+
+  <!-- create component template SubComponent -->
+  <template class="SubComponent template">
+    <slot></slot>
+          
+    <style>
+      ::slotted(h1) {
+        color: {{ $props.color }};
+      }
+    </style>
+
+    <script>
+      exports = class {
+        static mode = 'open' // add Shadow DOM
+      }
+    </script>
+  </template>
+
+  <!-- include Reacton plugin -->
+  <script src="reacton.min.js"></script>
+
+  <script>
+    //pass component templates to Reacton plugin
+    Reacton(...document.querySelectorAll('.template'))
+  </script>
+</body>
+</html>
+```
+
+In this example, the state value of the **color** property from the parent component MyComponent is passed to the ***color*** attribute of the child component SubComponent, and the value of the state property **message** is passed to the slot of the child component:
+
+```html
+<!-- mount the SubComponent component -->
+<sub-component :color="color">
+  <h1>Hello, {{ message }}!</h1>
+</sub-component>
+```
+
+Within this component, the attribute value can be accessed using the special property **$props**, as shown below:
+
+```html
+<style>
+  ::slotted(h1) {
+    color: {{ $props.color }};
+  }
+</style>
+```
+
+To style elements passed to slots, the [::slotted](https://javascript.info/shadow-dom-style#styling-slotted-content) pseudo-class is used. In addition, the child SubComponent uses a [&lt;slot&gt;](https://javascript.info/slots-composition#default-slot-first-unnamed) element, which is the default slot:
+
+```html
+<slot></slot>
+```
+
+into which the title from the parent component MyComponent will be inserted:
+
+```html
+<h1>Hello, {{ message }}!</h1>
+```
+
+When you change the value of the **message** state property of the parent component, the contents of the slot in the child will also change. For example, enter the command in the browser console:
+
+```
+mycomp.$state.message = 'Web Components'
+```
+
+But when the value of the state property passed through attributes changes, no changes will occur in the child component:
+
+```
+mycomp.$state.color = 'green'
+```
+
+In addition, only text data, not objects, can be passed to child components through slots and attributes. But all these problems are solved with the help of [events](#events) that will be discussed later.
 
 <br>
 <br>
@@ -1547,7 +1658,7 @@ In the example below, the *«for»* loop outputs 10 paragraphs with numbers from
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
@@ -1773,7 +1884,7 @@ To work with [slots](https://javascript.info/slots-composition), the component n
   <script src="reacton.min.js"></script>
 
   <script>
-    // pass component template MyComponent to Reaction plugin
+    // pass component template MyComponent to Reacton plugin
     Reacton(document.querySelector('.MyComponent'))
   </script>
 </body>
