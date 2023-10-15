@@ -10,6 +10,8 @@
 
 Reacton is a JavaScript plugin for quickly building reactive [Web Components](https://javascript.info/web-components). The plugin supports all technologies, methods and properties such as [slots](https://javascript.info/slots-composition) and [Shadow DOM](https://javascript.info/shadow-dom) that are provided by standard Web Components.
 
+*- Adding the [child components](#child-components) section.*
+
 *- [Added](https://github.com/reacton-js/reacton/tree/main/webpack-example-routes) example [Webpack](https://webpack.js.org/) build for [routes](#routes).*
 
 *- [Added](https://github.com/reacton-js/reacton/tree/main/webpack-example-events) example [Webpack](https://webpack.js.org/) build for [events](#events).*
@@ -607,7 +609,7 @@ The element into which the component is mounted must contain the [*is*](https://
 
 <br>
 
-The static property **attributes** contains an array with the names of attributes, when changing which, the static method **changed()** will be called, for example:
+The static property <span id="tracked-attributes">**attributes**</span> contains an array with the names of attributes, when changing which, the static method **changed()** will be called, for example:
 
 ```js
 static attributes = ['title'] // tracked attributes
@@ -1623,6 +1625,53 @@ mycomp.$state.color = 'green'
 ```
 
 In addition, only text data, not objects, can be passed to child components through slots and attributes. But all these problems are solved with the help of [events](#events) that will be discussed later.
+
+<br>
+
+However, if you add a state property to the constructor of a child component that gets a value from an attribute, and make this attribute [trackable](#tracked-attributes), then when the state in the parent component changes, the state in the child will also change.
+
+Make changes to the SubComponent class as shown below:
+
+```js
+exports = class {
+  constructor(props) {
+    // assign the state property the value from the attribute
+    this.color = props.color
+  }
+
+  static mode = 'open' // add Shadow DOM
+
+  static attributes = ['color'] // tracked attribute
+
+  // called when the tracked attribute changes
+  static changed(name, oldValue, newValue) {
+    // assign the state property a new value from the attribute
+    this.color = newValue
+  }
+}
+```
+
+Now make changes to the styles of this component so as not to pass the value of the ***color*** attribute directly:
+
+```js
+color: {{ $props.color }};
+```
+
+and pass the value of the **color** state property of the child component:
+
+```html
+<style>
+  ::slotted(h1) {
+    color: {{ color }};
+  }
+</style>
+```
+
+Now the title color in the child component will change to green if you enter the following command in the browser console:
+
+```
+mycomp.$state.color = 'green'
+```
 
 <br>
 <br>
