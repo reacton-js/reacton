@@ -3,41 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reacton</title>
+  <title>Document</title>
 </head>
 <body>
-  <!-- mount the MyComponent component -->
-  <my-component color="red" id="mycomp"></my-component>
+  <!-- connect Hello component to the document -->
+  <w-hello id="hello"></w-hello>
 
-  <!-- create component template MyComponent -->
-  <template class="MyComponent">
-    <h1>Hello, {{ message }}!</h1>
-          
-    <style>
-      h1 {
-        color: {{ color }};
-      }
-    </style>
-    
-    <script>
-      exports = class {
-        // initializing the state object in the constructor
-        constructor(props) {
-          this.message = 'Reacton'
-          this.color = props.color
-        }
-
-        static mode = 'open' // add Shadow DOM
-      }
-    </script>
-  </template>
-
-  <!-- include Reacton plugin -->
-  <script src="reacton.min.js"></script>
+  <script src="rtn.global.js"></script>
 
   <script>
-    // pass component template MyComponent to Reacton plugin
-    Reacton(document.querySelector('.MyComponent'))
+    class WHello {
+      // initializing the properties of a state object
+      message = 'Reacton'
+      color = 'orangered'
+
+      static mode = 'open' // add Shadow DOM
+
+      // return the HTML markup of the component
+      static template = `
+        <h1>Hello, {{ message }}!</h1>
+        
+        <style>
+          h1 {
+            color: {{ color }};
+          }
+        </style>
+      `
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
   </script>
 </body>
 </html>
