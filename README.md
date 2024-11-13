@@ -16,6 +16,31 @@ Reacton (short Rtn) is a JavaScript framework for quickly creating reactive [Web
 
 <br>
 
+Below is an example of creating a simple component:
+
+```js
+class WHello {
+  // initializing the properties of a state object
+  message = 'Reacton'
+  color = 'orangered'
+
+  static mode = 'open' // add Shadow DOM
+
+  // return the HTML markup of the component
+  static template = `
+    <h1>Hello, {{ message }}!</h1>
+    
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+  `
+}
+```
+
+<br>
+
 ***The project is in development...***
 
 <br>

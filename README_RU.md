@@ -16,6 +16,31 @@ Reacton (сокр. Rtn) – это фреймворк JavaScript для быст
 
 <br>
 
+Ниже представлен пример создания простого компонента:
+
+```js
+class WHello {
+  // инициализация свойств объекта состояния
+  message = 'Reacton'
+  color = 'orangered'
+
+  static mode = 'open' // добавить Теневой DOM
+
+  // вернуть HTML-разметку компонента
+  static template = `
+    <h1>Привет, {{ message }}!</h1>
+    
+    <style>
+      h1 {
+        color: {{ color }};
+      }
+    </style>
+  `
+}
+```
+
+<br>
+
 ***Проект находится в разработке...***
 
 <br>
