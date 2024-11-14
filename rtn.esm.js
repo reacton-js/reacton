@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.0
+* Reacton v4.0.1
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -31,6 +31,10 @@ const getObs = Symbol();
 const hasRoot = Symbol();
 const isObject = Symbol();
 const isLight = Symbol();
+const configMutations = {
+  childList: true,
+  subtree: true
+};
 async function _rtn(...args) {
   for (let arg of args) {
     if (arg instanceof HTMLTemplateElement) {
@@ -65,7 +69,6 @@ async function _rtn(...args) {
         const temp = new DOMParser().parseFromString('', 'text/html').body;
         const service = {
           funs: new WeakMap(),
-          vals: new WeakMap(),
           deps: new WeakMap(),
           obrs: new WeakMap(),
           nodes: [],
@@ -119,12 +122,12 @@ async function _rtn(...args) {
         service.state = state;
       }
       async connectedCallback() {
-        const service = SERVICE.get(this),
-          {
-            root,
-            temp,
-            state
-          } = service;
+        const {
+          funs,
+          root,
+          temp,
+          state
+        } = SERVICE.get(this);
         if (typeof arg.startConnect === 'function') {
           await arg.startConnect.call(state);
         }
@@ -132,6 +135,13 @@ async function _rtn(...args) {
           temp.innerHTML = arg.template;
           prepareTemplate.call(this, temp);
           root.append(...temp.childNodes);
+          new MutationObserver(records => {
+            for (var rec of records) {
+              for (var node of rec.removedNodes) {
+                removeCallbacks(node, funs);
+              }
+            }
+          }).observe(root, configMutations);
         }
         if (typeof arg.connected === 'function') {
           arg.connected.call(state);
@@ -265,6 +275,27 @@ function prepareTemplate(node) {
   }
   return true;
 }
+const removeCallbacks = (node, funs) => {
+  if (node.nodeType === 1) {
+    const bools = node[getBools];
+    if (bools) {
+      for (var bool of bools) {
+        funs.delete(bool);
+      }
+      bools.clear();
+    }
+  } else {
+    funs.delete(node);
+  }
+  if (node.attributes) {
+    for (var i = 0; i < node.attributes.length; i++) {
+      removeCallbacks(node.attributes[i], funs);
+    }
+  }
+  for (var i = 0; i < node.childNodes.length; i++) {
+    removeCallbacks(node.childNodes[i], funs);
+  }
+};
 const getCallback = (state, str, value = state[str]) => {
   return typeof value === 'function' ? event => value.call(state, event) : Function(globKeys, `const{${mainKeys}}=this${state[getAlias] ? ',' + state[getAlias] + '=this\n' : '\nwith($host)with(this)'}return event=>{'use strict'\nreturn ${str}}`).call(state);
 };
@@ -338,7 +369,9 @@ class Hooks {
       } else {
         target[prop] = value;
       }
-      callHandler(this[getDeps], this[propService].funs, this[propService].nodes);
+      if (!this[propService].nodes.length) {
+        callHandler(this[getDeps], this[propService].funs, this[propService].nodes);
+      }
     } else {
       target[prop] = value;
     }
@@ -353,7 +386,9 @@ class Hooks {
     } else if (methProxy[target.name]) {
       target.apply(this[getTarget], args);
       if (this[propDeps]) {
-        callHandler(this[propDeps], this[propService].funs, this[propService].nodes);
+        if (!this[propService].nodes.length) {
+          callHandler(this[propDeps], this[propService].funs, this[propService].nodes);
+        }
       }
       return thisArg;
     }
@@ -367,7 +402,9 @@ class Hooks {
         this[propService].obrs.delete(target[prop]);
       }
       const inv = Array.isArray(target) ? !!target.splice(prop, 1).length : !(target[prop] = undefined);
-      callHandler(this[getDeps], this[propService].funs, this[propService].nodes);
+      if (!this[propService].nodes.length) {
+        callHandler(this[getDeps], this[propService].funs, this[propService].nodes);
+      }
       return inv;
     } else {
       return delete target[prop];
