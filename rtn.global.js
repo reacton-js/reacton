@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.1
+* Reacton v4.0.2
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -308,17 +308,23 @@ var Rtn = function () {
     return proxy;
   };
   const callHandler = (dep, funs, nodes) => {
+    let cb;
     for (var node of dep) {
-      if (nodes) {
-        nodes.push(node);
-      }
-      if (node[getOwner]) {
-        funs.get(node)() ? node[getOwner][node.name] = true : node[getOwner][node.name] = false;
+      cb = funs.get(node);
+      if (cb) {
+        if (nodes) {
+          nodes.push(node);
+        }
+        if (node[getOwner]) {
+          cb() ? node[getOwner][node.name] = true : node[getOwner][node.name] = false;
+        } else {
+          node.nodeValue = cb();
+        }
+        if (nodes) {
+          nodes.pop();
+        }
       } else {
-        node.nodeValue = funs.get(node)();
-      }
-      if (nodes) {
-        nodes.pop();
+        dep.delete(node);
       }
     }
   };
