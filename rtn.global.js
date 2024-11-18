@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.5
+* Reacton v4.0.6
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -337,7 +337,7 @@ var Rtn = function () {
           const props = arr.slice(1).reduce((obj, key) => (obj[key] = true, obj), {});
           if (vars) {
             const fun = `() => ((${vars}) => event => ${node.value.trim()})(${vars})`;
-            const cb = exec.call(state, fun, 'vars');
+            const cb = exec.call(state, fun, true);
             let deps = owner[getEvents];
             if (!deps) {
               deps = new Set();
