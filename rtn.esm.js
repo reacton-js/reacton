@@ -1,17 +1,21 @@
 /**
-* Reacton v4.0.2
+* Reacton v4.0.3
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
+const regFile = /\.\w+$/;
 const regUpName = /[A-Z]/g;
 const regParams = /:(\w+)/g;
 const regSubtins = /{{([^{}]*?)}}/;
-const regFile = /\.\w+$/;
+const regQuote = /('|"|`)[^]*?\1/g;
+const regLeft = /;|\bof\b|\bin\b/;
+const regVars = /\b[A-Za-z_]\w*?\b/g;
 const SERVICE = new WeakMap();
 const newDocument = new DOMParser().parseFromString('', 'text/html');
-const regEntities = [[/&/g, '&amp;'], [/</g, '&lt;'], [/>/g, '&gt;'], [/"/g, '&quot;'], [/'/g, '&#39;']];
 const globKeys = 'window,location,history,document,navigation,screen';
 const mainKeys = '$host,$shadow,$data,$state,$event,$router,$,$$,$entities';
+const getVars = str => str.replace(regQuote, '').split(regLeft)[0].match(regVars).join();
+const regEntities = [[/&/g, '&amp;'], [/</g, '&lt;'], [/>/g, '&gt;'], [/"/g, '&quot;'], [/'/g, '&#39;']];
 const methNames = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'toString', 'add', 'set', 'delete', 'clear'];
 const methProxy = methNames.reduce((obj, prop) => (obj[prop] = true, obj), {});
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -23,14 +27,16 @@ const propRouter = Symbol();
 const propDeps = Symbol();
 const getTarget = Symbol();
 const getAlias = Symbol();
-const getOwner = Symbol();
 const getBools = Symbol();
+const getOwner = Symbol();
 const getDeps = Symbol();
 const getRoot = Symbol();
 const getObs = Symbol();
 const hasRoot = Symbol();
-const isObject = Symbol();
 const isLight = Symbol();
+const isFrag = Symbol();
+const isObj = Symbol();
+const isFor = Symbol();
 const configMutations = {
   childList: true,
   subtree: true
@@ -57,6 +63,7 @@ async function _rtn(...args) {
     const serializable = arg.hasOwnProperty('serializable') ? arg.serializable : false;
     const SUPERElement = extend ? Object.getPrototypeOf(document.createElement(extend)).constructor : HTMLElement;
     const alias = arg.alias;
+    const time = arg.time;
     customElements.define(name, class extends SUPERElement {
       constructor() {
         super();
@@ -71,10 +78,13 @@ async function _rtn(...args) {
           funs: new WeakMap(),
           deps: new WeakMap(),
           obrs: new WeakMap(),
+          bools: new WeakMap(),
+          exec: null,
           nodes: [],
           target,
           root,
-          temp
+          temp,
+          time
         };
         SERVICE.set(this, service);
         const state = new Proxy(getObserver(target, service), {
@@ -122,23 +132,25 @@ async function _rtn(...args) {
         service.state = state;
       }
       async connectedCallback() {
-        const {
-          funs,
-          root,
-          temp,
-          state
-        } = SERVICE.get(this);
+        const service = SERVICE.get(this),
+          {
+            funs,
+            bools,
+            root,
+            temp,
+            state
+          } = service;
         if (typeof arg.startConnect === 'function') {
           await arg.startConnect.call(state);
         }
         if (typeof arg.template === 'string') {
           temp.innerHTML = arg.template;
-          prepareTemplate.call(this, temp);
+          prepareTemplate(service, temp);
           root.append(...temp.childNodes);
           new MutationObserver(records => {
             for (var rec of records) {
               for (var node of rec.removedNodes) {
-                removeCallbacks(node, funs);
+                removeCallbacks(node, funs, bools);
               }
             }
           }).observe(root, configMutations);
@@ -198,7 +210,7 @@ async function _rtn(...args) {
     } : null);
   }
 }
-function prepareTemplate(node) {
+const prepareTemplate = (service, node, vars) => {
   if (node.nodeType === 8) {
     return node.remove();
   } else if (node.nodeType === 3) {
@@ -209,83 +221,142 @@ function prepareTemplate(node) {
         const {
           state,
           funs,
+          exec,
           nodes
-        } = SERVICE.get(this);
-        const cb = getCallback(state, arr[1].trim());
+        } = service;
+        const cb = exec ? exec.call(state, arr[1].trim()) : getCallback(state, arr[1].trim());
         funs.set(node, cb);
         nodes.push(node);
-        node.data = cb();
+        if (vars) {
+          node[isFrag] = true;
+          node.data = '';
+          cb();
+        } else {
+          node.data = cb();
+        }
         nodes.pop();
       } else {
         node.splitText(arr.index);
       }
     }
-  } else if (node.nodeType === 2 && (node.nodeName[0] === ':' || node.nodeName[0] === '@')) {
-    const owner = node.ownerElement;
-    const name = node.nodeName.slice(1);
+  } else if (node.nodeType === 2 && (node.nodeName[0] === ':' || node.nodeName[0] === '@' || node.nodeName === '$for')) {
     const {
       state,
       funs,
+      bools,
+      exec,
       nodes
-    } = SERVICE.get(this);
-    const cb = getCallback(state, node.value.trim());
-    if (node.nodeName[0] === ':') {
-      if (typeof owner[name] === 'boolean') {
-        const obj = {
-          [getOwner]: owner,
-          name
-        };
-        funs.set(obj, cb);
-        nodes.push(obj);
-        if (cb()) {
-          owner[name] = true;
-        }
-        nodes.pop();
-        let bools = owner[getBools];
-        if (!bools) {
-          bools = new Set();
-          Object.defineProperty(owner, getBools, {
-            value: bools
-          });
-        }
-        bools.add(obj);
-      } else {
-        owner.setAttribute(name, '');
-        const attr = owner.attributes[name];
-        funs.set(attr, cb);
-        nodes.push(attr);
-        attr.value = cb();
-        nodes.pop();
+    } = service;
+    const owner = node.ownerElement,
+      name = node.nodeName.slice(1);
+    if (node.nodeName[0] === '$') {
+      const value = node.value.trim(),
+        iter = getCycle(state, value, exec);
+      const strVars = vars ? vars + `,${getVars(value)}` : getVars(value);
+      const saveExec = service.exec;
+      service.exec = iter.next().value;
+      for (var i = 0; i < owner.childNodes.length; i++) {
+        prepareTemplate(service, owner.childNodes[i], strVars) || i--;
       }
+      service.exec = saveExec;
+      const frag = new DocumentFragment();
+      frag.append(...owner.childNodes);
+      let obj = {
+        iter,
+        frag,
+        wrap: {
+          childNodes: []
+        },
+        len: frag.childNodes.length
+      };
+      funs.set(owner, obj);
+      nodes.push(owner);
+      if (!vars) {
+        while (!iter.next().value) {
+          owner.append(updateDOM(funs, frag.cloneNode(true), frag));
+        }
+      } else {
+        owner[isFor] = true;
+      }
+      nodes.pop();
     } else {
-      const arr = name.split('.');
-      const props = arr.slice(1).reduce((obj, key) => (obj[key] = true, obj), {});
-      owner.addEventListener(arr[0], cb, props);
+      const cb = exec ? exec.call(state, node.value.trim()) : getCallback(state, node.value.trim());
+      if (node.nodeName[0] === ':') {
+        if (name === 'is') {
+          // ------------------------ code ------------------------
+        } else if (typeof owner[name] === 'boolean') {
+          let deps,
+            obj = {
+              [getOwner]: owner,
+              name
+            };
+          funs.set(obj, cb);
+          nodes.push(obj);
+          if (vars) {
+            deps = owner[getBools];
+            if (!deps) {
+              deps = new Set();
+              owner[getBools] = deps;
+            }
+            cb();
+          } else {
+            deps = bools.get(owner);
+            if (!deps) {
+              deps = new Set();
+              bools.set(owner, deps);
+            }
+            if (cb()) {
+              owner[name] = true;
+            }
+          }
+          deps.add(obj);
+          nodes.pop();
+        } else {
+          owner.setAttribute(name, '');
+          const attr = owner.attributes[name];
+          funs.set(attr, cb);
+          nodes.push(attr);
+          if (vars) {
+            attr[isFrag] = true;
+            attr.value = '';
+            cb();
+          } else {
+            attr.value = cb();
+          }
+          nodes.pop();
+        }
+      } else {
+        const arr = name.split('.');
+        const props = arr.slice(1).reduce((obj, key) => (obj[key] = true, obj), {});
+        owner.addEventListener(arr[0], cb, props);
+      }
     }
     return owner.removeAttribute(node.nodeName);
   } else {
     if (node.attributes) {
-      for (var i = 0; i < node.attributes.length; i++) {
-        prepareTemplate.call(this, node.attributes[i]) || i--;
+      for (var i = 0, attrs = node.attributes, hasAttr = attrs['$for']; i < attrs.length; i++) {
+        prepareTemplate(service, attrs[i], vars) || i--;
       }
     }
-    for (var i = 0; i < node.childNodes.length; i++) {
-      prepareTemplate.call(this, node.childNodes[i]) || i--;
+    if (!hasAttr) {
+      for (var i = 0, childs = node.childNodes; i < childs.length; i++) {
+        prepareTemplate(service, childs[i], vars) || i--;
+      }
     }
   }
-  return true;
-}
-const removeCallbacks = (node, funs) => {
+  return node;
+};
+const removeCallbacks = (node, funs, bools) => {
+  funs.delete(node);
   if (node.nodeType === 1) {
-    const bools = node[getBools];
-    if (bools) {
-      for (var bool of bools) {
+    const deps = bools.get(node);
+    if (deps) {
+      for (var bool of deps) {
         funs.delete(bool);
       }
-      bools.clear();
+      deps.clear();
+      bools.delete(node);
     }
-  } else {
-    funs.delete(node);
   }
   if (node.attributes) {
     for (var i = 0; i < node.attributes.length; i++) {
@@ -293,27 +364,81 @@ const removeCallbacks = (node, funs) => {
     }
   }
   for (var i = 0; i < node.childNodes.length; i++) {
-    removeCallbacks(node.childNodes[i], funs);
+    removeCallbacks(node.childNodes[i], funs, bools);
   }
 };
-const getCallback = (state, str, value = state[str]) => {
-  return typeof value === 'function' ? event => value.call(state, event) : Function(globKeys, `const{${mainKeys}}=this${state[getAlias] ? ',' + state[getAlias] + '=this\n' : '\nwith($host)with(this)'}return event=>{'use strict'\nreturn ${str}}`).call(state);
+const getCallback = (state, str) => typeof state[str] === 'function' ? event => state[str].call(state, event) : Function(globKeys, `const {${mainKeys}} = this${state[getAlias] ? `,${state[getAlias]} = this\n` : '\nwith ($host) with (this)'} return event => {'use strict'\nreturn ${str}}`).call(state);
+const getGenerator = str => `(function*(){ yield function(){ return eval('event => ' + arguments[0]) }\nwhile (true){ for (var ${str}) yield; yield true }})`;
+const getCycle = (state, str, exec) => (exec ? exec.call(state, getGenerator(str))() : getCallback(state, getGenerator(str))()).call(state);
+const updateCycle = (funs, node, cb) => {
+  let idx = 0,
+    {
+      iter,
+      frag,
+      wrap,
+      len
+    } = cb,
+    childs = node.childNodes;
+  while (!iter.next().value) {
+    if (childs[idx]) {
+      for (var i = 0; i < len; i++) {
+        wrap.childNodes[i] = childs[i + idx];
+      }
+      updateDOM(funs, wrap, frag);
+    } else {
+      node.append(updateDOM(funs, frag.cloneNode(true), frag));
+    }
+    idx += len;
+  }
+  if (idx < childs.length) {
+    for (var i = childs.length; i > idx; i--) {
+      node.lastChild.remove();
+    }
+  }
+  wrap.childNodes.length = 0;
 };
-const getObserver = (obj, service, deps) => {
-  const proxy = new Proxy(obj, new Hooks(service, deps));
-  service.obrs.set(obj, proxy);
-  return proxy;
+const updateDOM = (funs, node, frag) => {
+  if (frag[isFrag]) {
+    node.nodeValue = funs.get(frag)();
+  } else {
+    if (frag.attributes) {
+      for (var i = 0; i < frag.attributes.length; i++) {
+        updateDOM(funs, node.attributes[i], frag.attributes[i]);
+      }
+      if (frag[getBools]) {
+        for (var bool of frag[getBools]) {
+          node[bool.name] = funs.get(bool)() ? true : false;
+        }
+      }
+    }
+    if (frag[isFor]) {
+      updateCycle(funs, node, funs.get(frag));
+    } else {
+      for (var i = 0; i < frag.childNodes.length; i++) {
+        updateDOM(funs, node.childNodes[i], frag.childNodes[i]);
+      }
+    }
+  }
+  return node;
 };
-const callHandler = (dep, funs, nodes) => {
-  let cb;
+const callHandler = (dep, {
+  funs,
+  nodes,
+  time
+}) => {
+  if (time) {
+    var start = performance.now();
+  }
   for (var node of dep) {
-    cb = funs.get(node);
+    var cb = funs.get(node);
     if (cb) {
       if (nodes) {
         nodes.push(node);
       }
-      if (node[getOwner]) {
-        cb() ? node[getOwner][node.name] = true : node[getOwner][node.name] = false;
+      if (node.nodeType === 1) {
+        updateCycle(funs, node, cb);
+      } else if (node[getOwner]) {
+        node[getOwner][node.name] = cb() ? true : false;
       } else {
         node.nodeValue = cb();
       }
@@ -324,6 +449,14 @@ const callHandler = (dep, funs, nodes) => {
       dep.delete(node);
     }
   }
+  if (time) {
+    console.log(performance.now() - start + ' ms');
+  }
+};
+const getObserver = (obj, service, deps) => {
+  const proxy = new Proxy(obj, new Hooks(service, deps));
+  service.obrs.set(obj, proxy);
+  return proxy;
 };
 class Hooks {
   constructor(service, deps) {
@@ -336,10 +469,9 @@ class Hooks {
       if (this[getObs]) {
         return this[getObs];
       } else if (this[propService].nodes.length) {
-        this[isObject] = typeof target[prop] === 'object' && target[prop] !== null;
-        if (this[isObject] || target === this[propService].target) {
-          let deps = this[propService].deps.get(target),
-            dep;
+        if ((this[isObj] = typeof target[prop] === 'object' && target[prop] !== null) || target === this[propService].target) {
+          let dep,
+            deps = this[propService].deps.get(target);
           if (!deps) {
             deps = methProxy[prop] ? {
               [prop]: null
@@ -351,7 +483,7 @@ class Hooks {
             dep = deps[prop] = new Set();
           }
           dep.add(this[propService].nodes[0]);
-          if (this[isObject]) {
+          if (this[isObj]) {
             return getObserver(target[prop], this[propService], dep);
           }
         }
@@ -365,8 +497,7 @@ class Hooks {
   }
   set(target, prop, value) {
     this[getDeps] = this[propService].deps.get(target);
-    this[getDeps] = this[getDeps] && this[getDeps][prop] || this[propDeps];
-    if (this[getDeps]) {
+    if (this[getDeps] = this[getDeps] && this[getDeps][prop] || this[propDeps]) {
       if (typeof target[prop] === 'object' && target[prop] !== null) {
         this[propService].obrs.delete(target[prop]);
       }
@@ -376,7 +507,7 @@ class Hooks {
         target[prop] = value;
       }
       if (!this[propService].nodes.length) {
-        callHandler(this[getDeps], this[propService].funs, this[propService].nodes);
+        callHandler(this[getDeps], this[propService]);
       }
     } else {
       target[prop] = value;
@@ -393,7 +524,7 @@ class Hooks {
       target.apply(this[getTarget], args);
       if (this[propDeps]) {
         if (!this[propService].nodes.length) {
-          callHandler(this[propDeps], this[propService].funs, this[propService].nodes);
+          callHandler(this[propDeps], this[propService]);
         }
       }
       return thisArg;
@@ -402,14 +533,13 @@ class Hooks {
   }
   deleteProperty(target, prop) {
     this[getDeps] = this[propService].deps.get(target);
-    this[getDeps] = this[getDeps] && this[getDeps][prop] || this[propDeps];
-    if (this[getDeps]) {
+    if (this[getDeps] = this[getDeps] && this[getDeps][prop] || this[propDeps]) {
       if (typeof target[prop] === 'object' && target[prop] !== null) {
         this[propService].obrs.delete(target[prop]);
       }
       const inv = Array.isArray(target) ? !!target.splice(prop, 1).length : !(target[prop] = undefined);
       if (!this[propService].nodes.length) {
-        callHandler(this[getDeps], this[propService].funs, this[propService].nodes);
+        callHandler(this[getDeps], this[propService]);
       }
       return inv;
     } else {
