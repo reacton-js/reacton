@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.3
+* Reacton v4.0.5
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -29,6 +29,7 @@ var Rtn = function () {
   const propRouter = Symbol();
   const propDeps = Symbol();
   const getTarget = Symbol();
+  const getEvents = Symbol();
   const getAlias = Symbol();
   const getBools = Symbol();
   const getOwner = Symbol();
@@ -79,6 +80,7 @@ var Rtn = function () {
           const temp = new DOMParser().parseFromString('', 'text/html').body;
           const service = {
             funs: new WeakMap(),
+            evns: new WeakMap(),
             deps: new WeakMap(),
             obrs: new WeakMap(),
             bools: new WeakMap(),
@@ -138,6 +140,7 @@ var Rtn = function () {
           const service = SERVICE.get(this),
             {
               funs,
+              evns,
               bools,
               root,
               temp,
@@ -153,7 +156,7 @@ var Rtn = function () {
             new MutationObserver(records => {
               for (var rec of records) {
                 for (var node of rec.removedNodes) {
-                  removeCallbacks(node, funs, bools);
+                  removeCallbacks(node, funs, evns, bools);
                 }
               }
             }).observe(root, configMutations);
@@ -246,6 +249,7 @@ var Rtn = function () {
       const {
         state,
         funs,
+        evns,
         bools,
         exec,
         nodes
@@ -253,9 +257,9 @@ var Rtn = function () {
       const owner = node.ownerElement,
         name = node.nodeName.slice(1);
       if (node.nodeName[0] === '$') {
-        const value = node.value.trim(),
-          iter = getCycle(state, value, exec);
+        const value = node.value.trim();
         const strVars = vars ? vars + `,${getVars(value)}` : getVars(value);
+        const iter = getCycle(state, value, exec);
         const saveExec = service.exec;
         service.exec = iter.next().value;
         for (var i = 0; i < owner.childNodes.length; i++) {
@@ -276,17 +280,17 @@ var Rtn = function () {
         nodes.push(owner);
         if (!vars) {
           while (!iter.next().value) {
-            owner.append(updateDOM(funs, frag.cloneNode(true), frag));
+            owner.append(updateDOM(funs, evns, frag.cloneNode(true), frag));
           }
         } else {
           owner[isFor] = true;
         }
         nodes.pop();
       } else {
-        const cb = exec ? exec.call(state, node.value.trim()) : getCallback(state, node.value.trim());
         if (node.nodeName[0] === ':') {
+          const cb = vars ? exec.call(state, node.value.trim()) : getCallback(state, node.value.trim());
           if (name === 'is') {
-            // ------------------------ code ------------------------
+            // ------------------------ <<< code >>> ------------------------
           } else if (typeof owner[name] === 'boolean') {
             let deps,
               obj = {
@@ -331,7 +335,22 @@ var Rtn = function () {
         } else {
           const arr = name.split('.');
           const props = arr.slice(1).reduce((obj, key) => (obj[key] = true, obj), {});
-          owner.addEventListener(arr[0], cb, props);
+          if (vars) {
+            const fun = `() => ((${vars}) => event => ${node.value.trim()})(${vars})`;
+            const cb = exec.call(state, fun, 'vars');
+            let deps = owner[getEvents];
+            if (!deps) {
+              deps = new Set();
+              owner[getEvents] = deps;
+            }
+            deps.add({
+              name: arr[0],
+              cb,
+              props
+            });
+          } else {
+            owner.addEventListener(arr[0], getCallback(state, node.value.trim()), props);
+          }
         }
       }
       return owner.removeAttribute(node.nodeName);
@@ -349,17 +368,18 @@ var Rtn = function () {
     }
     return node;
   };
-  const removeCallbacks = (node, funs, bools) => {
+  const removeCallbacks = (node, funs, evns, bools) => {
     funs.delete(node);
     if (node.nodeType === 1) {
       const deps = bools.get(node);
       if (deps) {
-        for (var bool of deps) {
-          funs.delete(bool);
+        for (var obj of deps) {
+          funs.delete(obj);
         }
         deps.clear();
         bools.delete(node);
       }
+      evns.delete(node);
     }
     if (node.attributes) {
       for (var i = 0; i < node.attributes.length; i++) {
@@ -367,13 +387,13 @@ var Rtn = function () {
       }
     }
     for (var i = 0; i < node.childNodes.length; i++) {
-      removeCallbacks(node.childNodes[i], funs, bools);
+      removeCallbacks(node.childNodes[i], funs, evns, bools);
     }
   };
   const getCallback = (state, str) => typeof state[str] === 'function' ? event => state[str].call(state, event) : Function(globKeys, `const {${mainKeys}} = this${state[getAlias] ? `,${state[getAlias]} = this\n` : '\nwith ($host) with (this)'} return event => {'use strict'\nreturn ${str}}`).call(state);
-  const getGenerator = str => `(function*(){ yield function(){ return eval('event => ' + arguments[0]) }\nwhile (true){ for (var ${str}) yield; yield true }})`;
+  const getGenerator = str => `(function*(){ yield function(){ return eval(arguments[1] ? arguments[0] : 'event => ' + arguments[0]) }\nwhile (true){ for (var ${str}) yield; yield true }})`;
   const getCycle = (state, str, exec) => (exec ? exec.call(state, getGenerator(str))() : getCallback(state, getGenerator(str))()).call(state);
-  const updateCycle = (funs, node, cb) => {
+  const updateCycle = (funs, evns, node, cb) => {
     let idx = 0,
       {
         iter,
@@ -387,9 +407,9 @@ var Rtn = function () {
         for (var i = 0; i < len; i++) {
           wrap.childNodes[i] = childs[i + idx];
         }
-        updateDOM(funs, wrap, frag);
+        updateDOM(funs, evns, wrap, frag);
       } else {
-        node.append(updateDOM(funs, frag.cloneNode(true), frag));
+        node.append(updateDOM(funs, evns, frag.cloneNode(true), frag));
       }
       idx += len;
     }
@@ -400,25 +420,43 @@ var Rtn = function () {
     }
     wrap.childNodes.length = 0;
   };
-  const updateDOM = (funs, node, frag) => {
+  const updateDOM = (funs, evns, node, frag) => {
     if (frag[isFrag]) {
       node.nodeValue = funs.get(frag)();
     } else {
       if (frag.attributes) {
-        for (var i = 0; i < frag.attributes.length; i++) {
-          updateDOM(funs, node.attributes[i], frag.attributes[i]);
+        for (var i = 0, attrs = node.attributes; i < frag.attributes.length; i++) {
+          if (attrs[i]) {
+            updateDOM(funs, null, attrs[i], frag.attributes[i]);
+          }
         }
         if (frag[getBools]) {
-          for (var bool of frag[getBools]) {
-            node[bool.name] = funs.get(bool)() ? true : false;
+          for (var obj of frag[getBools]) {
+            node[obj.name] = funs.get(obj)() ? true : false;
+          }
+        }
+        if (frag[getEvents]) {
+          for (var obj of frag[getEvents]) {
+            const {
+                name,
+                cb,
+                props
+              } = obj,
+              fun = cb(),
+              old = evns.get(node);
+            if (old) {
+              node.removeEventListener(name, old, props);
+            }
+            node.addEventListener(name, fun, props);
+            evns.set(node, fun);
           }
         }
       }
       if (frag[isFor]) {
-        updateCycle(funs, node, funs.get(frag));
+        updateCycle(funs, evns, node, funs.get(frag));
       } else {
         for (var i = 0; i < frag.childNodes.length; i++) {
-          updateDOM(funs, node.childNodes[i], frag.childNodes[i]);
+          updateDOM(funs, evns, node.childNodes[i], frag.childNodes[i]);
         }
       }
     }
@@ -426,6 +464,7 @@ var Rtn = function () {
   };
   const callHandler = (dep, {
     funs,
+    evns,
     nodes,
     time
   }) => {
@@ -439,7 +478,7 @@ var Rtn = function () {
           nodes.push(node);
         }
         if (node.nodeType === 1) {
-          updateCycle(funs, node, cb);
+          updateCycle(funs, evns, node, cb);
         } else if (node[getOwner]) {
           node[getOwner][node.name] = cb() ? true : false;
         } else {
