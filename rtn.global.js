@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.6
+* Reacton v4.0.7
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -15,7 +15,7 @@ var Rtn = function () {
   const regVars = /\b[A-Za-z_]\w*?\b/g;
   const SERVICE = new WeakMap();
   const newDocument = new DOMParser().parseFromString('', 'text/html');
-  const globKeys = 'window,location,history,document,navigation,screen';
+  const globKeys = 'window,location,history,document,navigation,screen,arguments';
   const mainKeys = '$host,$shadow,$data,$state,$event,$router,$,$$,$entities';
   const getVars = str => str.replace(regQuote, '').split(regLeft)[0].match(regVars).join();
   const regEntities = [[/&/g, '&amp;'], [/</g, '&lt;'], [/>/g, '&gt;'], [/"/g, '&quot;'], [/'/g, '&#39;']];
@@ -236,7 +236,6 @@ var Rtn = function () {
           if (vars) {
             node[isFrag] = true;
             node.data = '';
-            cb();
           } else {
             node.data = cb();
           }
@@ -305,7 +304,6 @@ var Rtn = function () {
                 deps = new Set();
                 owner[getBools] = deps;
               }
-              cb();
             } else {
               deps = bools.get(owner);
               if (!deps) {
@@ -326,7 +324,6 @@ var Rtn = function () {
             if (vars) {
               attr[isFrag] = true;
               attr.value = '';
-              cb();
             } else {
               attr.value = cb();
             }

@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.6
+* Reacton v4.0.7
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -12,7 +12,7 @@ const regLeft = /;|\bof\b|\bin\b/;
 const regVars = /\b[A-Za-z_]\w*?\b/g;
 const SERVICE = new WeakMap();
 const newDocument = new DOMParser().parseFromString('', 'text/html');
-const globKeys = 'window,location,history,document,navigation,screen';
+const globKeys = 'window,location,history,document,navigation,screen,arguments';
 const mainKeys = '$host,$shadow,$data,$state,$event,$router,$,$$,$entities';
 const getVars = str => str.replace(regQuote, '').split(regLeft)[0].match(regVars).join();
 const regEntities = [[/&/g, '&amp;'], [/</g, '&lt;'], [/>/g, '&gt;'], [/"/g, '&quot;'], [/'/g, '&#39;']];
@@ -233,7 +233,6 @@ const prepareTemplate = (service, node, vars) => {
         if (vars) {
           node[isFrag] = true;
           node.data = '';
-          cb();
         } else {
           node.data = cb();
         }
@@ -302,7 +301,6 @@ const prepareTemplate = (service, node, vars) => {
               deps = new Set();
               owner[getBools] = deps;
             }
-            cb();
           } else {
             deps = bools.get(owner);
             if (!deps) {
@@ -323,7 +321,6 @@ const prepareTemplate = (service, node, vars) => {
           if (vars) {
             attr[isFrag] = true;
             attr.value = '';
-            cb();
           } else {
             attr.value = cb();
           }
