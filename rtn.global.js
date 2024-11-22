@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.7
+* Reacton v4.0.8
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -26,21 +26,23 @@ var Rtn = function () {
   const loadEvent = new DocumentFragment();
   const rootStorage = new Set();
   const propService = Symbol();
+  const propAnchor = Symbol();
   const propRouter = Symbol();
+  const propCycle = Symbol();
+  const propOwner = Symbol();
+  const propView = Symbol();
+  const propFunc = Symbol();
   const propDeps = Symbol();
   const getTarget = Symbol();
   const getEvents = Symbol();
   const getAlias = Symbol();
   const getBools = Symbol();
-  const getOwner = Symbol();
+  const getObser = Symbol();
   const getDeps = Symbol();
   const getRoot = Symbol();
-  const getObs = Symbol();
   const hasRoot = Symbol();
+  const isObject = Symbol();
   const isLight = Symbol();
-  const isFrag = Symbol();
-  const isObj = Symbol();
-  const isFor = Symbol();
   const configMutations = {
     childList: true,
     subtree: true
@@ -77,7 +79,7 @@ var Rtn = function () {
             mode,
             serializable
           }) : this;
-          const temp = new DOMParser().parseFromString('', 'text/html').body;
+          const body = new DOMParser().parseFromString('', 'text/html').body;
           const service = {
             funs: new WeakMap(),
             evns: new WeakMap(),
@@ -88,7 +90,7 @@ var Rtn = function () {
             nodes: [],
             target,
             root,
-            temp,
+            body,
             time
           };
           SERVICE.set(this, service);
@@ -143,16 +145,16 @@ var Rtn = function () {
               evns,
               bools,
               root,
-              temp,
+              body,
               state
             } = service;
           if (typeof arg.startConnect === 'function') {
             await arg.startConnect.call(state);
           }
           if (typeof arg.template === 'string') {
-            temp.innerHTML = arg.template;
-            prepareTemplate(service, temp);
-            root.append(...temp.childNodes);
+            body.innerHTML = arg.template;
+            prepareTemplate(service, body);
+            root.append(...body.childNodes);
             new MutationObserver(records => {
               for (var rec of records) {
                 for (var node of rec.removedNodes) {
@@ -231,20 +233,20 @@ var Rtn = function () {
             nodes
           } = service;
           const cb = exec ? exec.call(state, arr[1].trim()) : getCallback(state, arr[1].trim());
-          funs.set(node, cb);
-          nodes.push(node);
           if (vars) {
-            node[isFrag] = true;
+            node[propFunc] = cb;
             node.data = '';
           } else {
+            funs.set(node, cb);
+            nodes.push(node);
             node.data = cb();
+            nodes.pop();
           }
-          nodes.pop();
         } else {
           node.splitText(arr.index);
         }
       }
-    } else if (node.nodeType === 2 && (node.nodeName[0] === ':' || node.nodeName[0] === '@' || node.nodeName === '$for')) {
+    } else if (node.nodeType === 2 && (node.nodeName[0] === ':' || node.nodeName[0] === '@' || node.nodeName[0] === '$')) {
       const {
         state,
         funs,
@@ -255,7 +257,7 @@ var Rtn = function () {
       } = service;
       const owner = node.ownerElement,
         name = node.nodeName.slice(1);
-      if (node.nodeName[0] === '$') {
+      if (node.nodeName === '$for') {
         const value = node.value.trim();
         const strVars = vars ? vars + `,${getVars(value)}` : getVars(value);
         const iter = getCycle(state, value, exec);
@@ -275,89 +277,126 @@ var Rtn = function () {
           },
           len: frag.childNodes.length
         };
-        funs.set(owner, obj);
-        nodes.push(owner);
         if (!vars) {
+          funs.set(owner, obj);
+          nodes.push(owner);
           while (!iter.next().value) {
-            owner.append(updateDOM(funs, evns, frag.cloneNode(true), frag));
+            owner.append(updateDOM(evns, frag.cloneNode(true), frag));
           }
+          nodes.pop();
         } else {
-          owner[isFor] = true;
+          owner[propCycle] = obj;
         }
-        nodes.pop();
+      } else if (node.nodeName[0] === '@') {
+        const arr = name.split('.');
+        const props = arr.slice(1).reduce((obj, key) => (obj[key] = true, obj), {});
+        if (vars) {
+          const fun = `() => ((${vars}) => event => ${node.value.trim()})(${vars})`;
+          const cb = exec.call(state, fun, true);
+          let deps = owner[getEvents];
+          if (!deps) {
+            deps = new Set();
+            owner[getEvents] = deps;
+          }
+          deps.add({
+            name: arr[0],
+            cb,
+            props
+          });
+        } else {
+          owner.addEventListener(arr[0], getCallback(state, node.value.trim()), props);
+        }
       } else {
-        if (node.nodeName[0] === ':') {
-          const cb = vars ? exec.call(state, node.value.trim()) : getCallback(state, node.value.trim());
-          if (name === 'is') {
-            // ------------------------ <<< code >>> ------------------------
-          } else if (typeof owner[name] === 'boolean') {
-            let deps,
-              obj = {
-                [getOwner]: owner,
-                name
-              };
+        const cb = vars ? exec.call(state, node.value.trim()) : getCallback(state, node.value.trim());
+        if (node.nodeName === '$view') {
+          owner.removeAttribute('$view');
+          if (vars) {
+            owner[propView] = cb;
+          } else {
+            let val,
+              obj = {};
             funs.set(obj, cb);
             nodes.push(obj);
-            if (vars) {
-              deps = owner[getBools];
-              if (!deps) {
-                deps = new Set();
-                owner[getBools] = deps;
-              }
-            } else {
-              deps = bools.get(owner);
-              if (!deps) {
-                deps = new Set();
-                bools.set(owner, deps);
-              }
-              if (cb()) {
-                owner[name] = true;
-              }
-            }
-            deps.add(obj);
+            val = cb();
             nodes.pop();
-          } else {
-            owner.setAttribute(name, '');
-            const attr = owner.attributes[name];
-            funs.set(attr, cb);
-            nodes.push(attr);
-            if (vars) {
-              attr[isFrag] = true;
-              attr.value = '';
-            } else {
-              attr.value = cb();
+            const elem = document.createElement(val);
+            obj[propAnchor] = elem;
+            for (var i = 0, attrs = owner.attributes; i < attrs.length; i++) {
+              elem.setAttributeNode(owner.removeAttributeNode(attrs[i])), i--;
             }
-            nodes.pop();
+            owner.replaceWith(elem);
           }
         } else {
-          const arr = name.split('.');
-          const props = arr.slice(1).reduce((obj, key) => (obj[key] = true, obj), {});
-          if (vars) {
-            const fun = `() => ((${vars}) => event => ${node.value.trim()})(${vars})`;
-            const cb = exec.call(state, fun, true);
-            let deps = owner[getEvents];
-            if (!deps) {
-              deps = new Set();
-              owner[getEvents] = deps;
+          if (node.nodeName[0] === ':') {
+            if (typeof owner[name] === 'boolean') {
+              let deps, obj;
+              if (vars) {
+                obj = {
+                  name,
+                  cb
+                };
+                deps = owner[getBools];
+                if (!deps) {
+                  deps = new Set();
+                  owner[getBools] = deps;
+                }
+              } else {
+                obj = {
+                  [propOwner]: owner,
+                  name
+                };
+                funs.set(obj, cb);
+                deps = bools.get(owner);
+                if (!deps) {
+                  deps = new Set();
+                  bools.set(owner, deps);
+                }
+                nodes.push(obj);
+                if (cb()) {
+                  owner[name] = true;
+                }
+                nodes.pop();
+              }
+              deps.add(obj);
+            } else {
+              owner.setAttribute(name, '');
+              const attr = owner.attributes[name];
+              if (vars) {
+                attr[propFunc] = cb;
+                attr.value = '';
+              } else {
+                funs.set(attr, cb);
+                nodes.push(attr);
+                attr.value = cb();
+                nodes.pop();
+              }
             }
-            deps.add({
-              name: arr[0],
-              cb,
-              props
-            });
-          } else {
-            owner.addEventListener(arr[0], getCallback(state, node.value.trim()), props);
           }
         }
       }
       return owner.removeAttribute(node.nodeName);
     } else {
-      if (node.attributes) {
-        for (var i = 0, attrs = node.attributes, hasAttr = attrs['$for']; i < attrs.length; i++) {
-          prepareTemplate(service, attrs[i], vars) || i--;
+      let isView,
+        isCycle,
+        attrs = node.attributes;
+      if (attrs.length) {
+        if (attrs['$view']) {
+          node.removeAttribute('$for');
+          isView = true;
+        } else if (attrs['$for']) {
+          isCycle = true;
+        }
+        for (var i = 0; i < attrs.length; i++) {
+          if (attrs[i].name[0] === ':' || attrs[i].name[0] === '@') {
+            prepareTemplate(service, attrs[i], vars) || i--;
+          }
         }
       }
-      if (!hasAttr) {
+      if (isView) {
+        prepareTemplate(service, attrs['$view'], vars);
+      } else if (isCycle) {
+        prepareTemplate(service, attrs['$for'], vars);
+      } else {
         for (var i = 0, childs = node.childNodes; i < childs.length; i++) {
           prepareTemplate(service, childs[i], vars) || i--;
         }
@@ -390,7 +429,7 @@ var Rtn = function () {
   const getCallback = (state, str) => typeof state[str] === 'function' ? event => state[str].call(state, event) : Function(globKeys, `const {${mainKeys}} = this${state[getAlias] ? `,${state[getAlias]} = this\n` : '\nwith ($host) with (this)'} return event => {'use strict'\nreturn ${str}}`).call(state);
   const getGenerator = str => `(function*(){ yield function(){ return eval(arguments[1] ? arguments[0] : 'event => ' + arguments[0]) }\nwhile (true){ for (var ${str}) yield; yield true }})`;
   const getCycle = (state, str, exec) => (exec ? exec.call(state, getGenerator(str))() : getCallback(state, getGenerator(str))()).call(state);
-  const updateCycle = (funs, evns, node, cb) => {
+  const updateCycle = (evns, node, cb) => {
     let idx = 0,
       {
         iter,
@@ -404,9 +443,9 @@ var Rtn = function () {
         for (var i = 0; i < len; i++) {
           wrap.childNodes[i] = childs[i + idx];
         }
-        updateDOM(funs, evns, wrap, frag);
+        updateDOM(evns, wrap, frag);
       } else {
-        node.append(updateDOM(funs, evns, frag.cloneNode(true), frag));
+        node.append(updateDOM(evns, frag.cloneNode(true), frag));
       }
       idx += len;
     }
@@ -417,19 +456,22 @@ var Rtn = function () {
     }
     wrap.childNodes.length = 0;
   };
-  const updateDOM = (funs, evns, node, frag) => {
-    if (frag[isFrag]) {
-      node.nodeValue = funs.get(frag)();
+  const updateDOM = (evns, node, frag) => {
+    if (frag[propFunc]) {
+      node.nodeValue = frag[propFunc]();
     } else {
       if (frag.attributes) {
         for (var i = 0, attrs = node.attributes; i < frag.attributes.length; i++) {
           if (attrs[i]) {
-            updateDOM(funs, null, attrs[i], frag.attributes[i]);
+            updateDOM(null, attrs[i], frag.attributes[i]);
           }
         }
         if (frag[getBools]) {
-          for (var obj of frag[getBools]) {
-            node[obj.name] = funs.get(obj)() ? true : false;
+          for (var {
+            name,
+            cb
+          } of frag[getBools]) {
+            node[name] = cb() ? true : false;
           }
         }
         if (frag[getEvents]) {
@@ -449,11 +491,17 @@ var Rtn = function () {
           }
         }
       }
-      if (frag[isFor]) {
-        updateCycle(funs, evns, node, funs.get(frag));
+      if (frag[propView]) {
+        const elem = document.createElement(frag[propView]());
+        for (var i = 0, attrs = node.attributes; i < attrs.length; i++) {
+          elem.setAttributeNode(node.removeAttributeNode(attrs[i])), i--;
+        }
+        node.replaceWith(elem);
+      } else if (frag[propCycle]) {
+        updateCycle(evns, node, frag[propCycle]);
       } else {
         for (var i = 0; i < frag.childNodes.length; i++) {
-          updateDOM(funs, evns, node.childNodes[i], frag.childNodes[i]);
+          updateDOM(evns, node.childNodes[i], frag.childNodes[i]);
         }
       }
     }
@@ -475,9 +523,18 @@ var Rtn = function () {
           nodes.push(node);
         }
         if (node.nodeType === 1) {
-          updateCycle(funs, evns, node, cb);
-        } else if (node[getOwner]) {
-          node[getOwner][node.name] = cb() ? true : false;
+          updateCycle(evns, node, cb);
+        } else if (node[propAnchor]) {
+          const owner = node[propAnchor],
+            attrs = owner.attributes;
+          const elem = document.createElement(cb());
+          node[propAnchor] = elem;
+          for (var i = 0; i < attrs.length; i++) {
+            elem.setAttributeNode(owner.removeAttributeNode(attrs[i])), i--;
+          }
+          owner.replaceWith(elem);
+        } else if (node[propOwner]) {
+          node[propOwner][node.name] = cb() ? true : false;
         } else {
           node.nodeValue = cb();
         }
@@ -504,11 +561,10 @@ var Rtn = function () {
     }
     get(target, prop) {
       if (target.hasOwnProperty(prop) || methProxy[prop]) {
-        this[getObs] = this[propService].obrs.get(target[prop]);
-        if (this[getObs]) {
-          return this[getObs];
+        if (this[getObser] = this[propService].obrs.get(target[prop])) {
+          return this[getObser];
         } else if (this[propService].nodes.length) {
-          if ((this[isObj] = typeof target[prop] === 'object' && target[prop] !== null) || target === this[propService].target) {
+          if ((this[isObject] = typeof target[prop] === 'object' && target[prop] !== null) || target === this[propService].target) {
             let dep,
               deps = this[propService].deps.get(target);
             if (!deps) {
@@ -522,7 +578,7 @@ var Rtn = function () {
               dep = deps[prop] = new Set();
             }
             dep.add(this[propService].nodes[0]);
-            if (this[isObj]) {
+            if (this[isObject]) {
               return getObserver(target[prop], this[propService], dep);
             }
           }
