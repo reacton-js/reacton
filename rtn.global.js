@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.8
+* Reacton v4.0.9
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -28,6 +28,7 @@ var Rtn = function () {
   const propService = Symbol();
   const propAnchor = Symbol();
   const propRouter = Symbol();
+  const propState = Symbol();
   const propCycle = Symbol();
   const propOwner = Symbol();
   const propView = Symbol();
@@ -37,12 +38,25 @@ var Rtn = function () {
   const getEvents = Symbol();
   const getAlias = Symbol();
   const getBools = Symbol();
+  const getProps = Symbol();
   const getObser = Symbol();
   const getDeps = Symbol();
   const getRoot = Symbol();
   const hasRoot = Symbol();
   const isObject = Symbol();
   const isLight = Symbol();
+  class propHooks {
+    constructor(state) {
+      this[propState] = state;
+    }
+    get(_, prop) {
+      return this[propState][prop];
+    }
+    set(_, prop, value) {
+      this[propState][prop] = value;
+      return true;
+    }
+  }
   const configMutations = {
     childList: true,
     subtree: true
@@ -80,6 +94,8 @@ var Rtn = function () {
             serializable
           }) : this;
           const body = new DOMParser().parseFromString('', 'text/html').body;
+          const props = this[getProps];
+          delete this[getProps];
           const service = {
             funs: new WeakMap(),
             evns: new WeakMap(),
@@ -100,6 +116,10 @@ var Rtn = function () {
                 return root;
               } else if (prop === getAlias) {
                 return alias;
+              } else if (prop === '$props') {
+                return props;
+              } else if (prop === '$state') {
+                return state;
               } else if (prop in target) {
                 return target[prop];
               }
@@ -116,21 +136,14 @@ var Rtn = function () {
             $data: {
               value: this.dataset
             },
+            $props: {
+              value: mode !== 'closed' ? props : undefined
+            },
             $state: {
-              value: new Proxy(state, {
-                get: (target, prop) => {
-                  if (mode !== 'closed') {
-                    return target[prop];
-                  }
-                },
-                set: (target, prop, value) => {
-                  if (mode === 'closed') {
-                    throw new Error('cannot change the state of a closed component');
-                  }
-                  target[prop] = value;
-                  return true;
-                }
-              })
+              value: mode !== 'closed' ? new Proxy(state, {
+                get: (target, prop) => target[prop],
+                set: (target, prop, value) => (target[prop] = value, true)
+              }) : undefined
             },
             [isLight]: {
               value: root === this
@@ -156,8 +169,9 @@ var Rtn = function () {
             prepareTemplate(service, body);
             root.append(...body.childNodes);
             new MutationObserver(records => {
-              for (var rec of records) {
-                for (var node of rec.removedNodes) {
+              let rec, node;
+              for (rec of records) {
+                for (node of rec.removedNodes) {
                   removeCallbacks(node, funs, evns, bools);
                 }
               }
@@ -263,7 +277,8 @@ var Rtn = function () {
         const iter = getCycle(state, value, exec);
         const saveExec = service.exec;
         service.exec = iter.next().value;
-        for (var i = 0; i < owner.childNodes.length; i++) {
+        let i = 0;
+        for (; i < owner.childNodes.length; i++) {
           prepareTemplate(service, owner.childNodes[i], strVars) || i--;
         }
         service.exec = saveExec;
@@ -320,8 +335,13 @@ var Rtn = function () {
             val = cb();
             nodes.pop();
             const elem = document.createElement(val);
+            if (owner[getProps]) {
+              elem[getProps] = owner[getProps];
+            }
             obj[propAnchor] = elem;
-            for (var i = 0, attrs = owner.attributes; i < attrs.length; i++) {
+            let i = 0,
+              attrs = owner.attributes;
+            for (; i < attrs.length; i++) {
               elem.setAttributeNode(owner.removeAttributeNode(attrs[i])), i--;
             }
             owner.replaceWith(elem);
@@ -380,13 +400,33 @@ var Rtn = function () {
         isCycle,
         attrs = node.attributes;
       if (attrs.length) {
+        if (attrs['$props']) {
+          const $props = attrs['$props'],
+            {
+              state
+            } = service;
+          node.removeAttribute('$props');
+          if ($props.value) {
+            let prop,
+              obj = {},
+              props = $props.value.split(',');
+            for (prop of props) {
+              prop = prop.trim();
+              obj[prop] = state[prop];
+            }
+            node[getProps] = new Proxy(obj, new propHooks(state));
+          } else {
+            node[getProps] = state;
+          }
+        }
         if (attrs['$view']) {
           node.removeAttribute('$for');
           isView = true;
         } else if (attrs['$for']) {
           isCycle = true;
         }
-        for (var i = 0; i < attrs.length; i++) {
+        let i = 0;
+        for (; i < attrs.length; i++) {
           if (attrs[i].name[0] === ':' || attrs[i].name[0] === '@') {
             prepareTemplate(service, attrs[i], vars) || i--;
           }
@@ -397,7 +437,9 @@ var Rtn = function () {
       } else if (isCycle) {
         prepareTemplate(service, attrs['$for'], vars);
       } else {
-        for (var i = 0, childs = node.childNodes; i < childs.length; i++) {
+        let i = 0,
+          childs = node.childNodes;
+        for (; i < childs.length; i++) {
           prepareTemplate(service, childs[i], vars) || i--;
         }
       }
@@ -409,7 +451,8 @@ var Rtn = function () {
     if (node.nodeType === 1) {
       const deps = bools.get(node);
       if (deps) {
-        for (var obj of deps) {
+        let obj;
+        for (obj of deps) {
           funs.delete(obj);
         }
         deps.clear();
@@ -418,11 +461,13 @@ var Rtn = function () {
       evns.delete(node);
     }
     if (node.attributes) {
-      for (var i = 0; i < node.attributes.length; i++) {
+      let i = 0;
+      for (; i < node.attributes.length; i++) {
         removeCallbacks(node.attributes[i], funs);
       }
     }
-    for (var i = 0; i < node.childNodes.length; i++) {
+    let i = 0;
+    for (; i < node.childNodes.length; i++) {
       removeCallbacks(node.childNodes[i], funs, evns, bools);
     }
   };
@@ -440,7 +485,8 @@ var Rtn = function () {
       childs = node.childNodes;
     while (!iter.next().value) {
       if (childs[idx]) {
-        for (var i = 0; i < len; i++) {
+        let i = 0;
+        for (; i < len; i++) {
           wrap.childNodes[i] = childs[i + idx];
         }
         updateDOM(evns, wrap, frag);
@@ -450,7 +496,8 @@ var Rtn = function () {
       idx += len;
     }
     if (idx < childs.length) {
-      for (var i = childs.length; i > idx; i--) {
+      let i = childs.length;
+      for (; i > idx; i--) {
         node.lastChild.remove();
       }
     }
@@ -461,13 +508,15 @@ var Rtn = function () {
       node.nodeValue = frag[propFunc]();
     } else {
       if (frag.attributes) {
-        for (var i = 0, attrs = node.attributes; i < frag.attributes.length; i++) {
+        let i = 0,
+          attrs = node.attributes;
+        for (; i < frag.attributes.length; i++) {
           if (attrs[i]) {
             updateDOM(null, attrs[i], frag.attributes[i]);
           }
         }
         if (frag[getBools]) {
-          for (var {
+          for (let {
             name,
             cb
           } of frag[getBools]) {
@@ -475,7 +524,8 @@ var Rtn = function () {
           }
         }
         if (frag[getEvents]) {
-          for (var obj of frag[getEvents]) {
+          let obj;
+          for (obj of frag[getEvents]) {
             const {
                 name,
                 cb,
@@ -493,14 +543,20 @@ var Rtn = function () {
       }
       if (frag[propView]) {
         const elem = document.createElement(frag[propView]());
-        for (var i = 0, attrs = node.attributes; i < attrs.length; i++) {
+        if (frag[getProps]) {
+          elem[getProps] = frag[getProps];
+        }
+        let i = 0,
+          attrs = node.attributes;
+        for (; i < attrs.length; i++) {
           elem.setAttributeNode(node.removeAttributeNode(attrs[i])), i--;
         }
         node.replaceWith(elem);
       } else if (frag[propCycle]) {
         updateCycle(evns, node, frag[propCycle]);
       } else {
-        for (var i = 0; i < frag.childNodes.length; i++) {
+        let i = 0;
+        for (; i < frag.childNodes.length; i++) {
           updateDOM(evns, node.childNodes[i], frag.childNodes[i]);
         }
       }
@@ -513,11 +569,13 @@ var Rtn = function () {
     nodes,
     time
   }) => {
+    let start;
     if (time) {
-      var start = performance.now();
+      start = performance.now();
     }
-    for (var node of dep) {
-      var cb = funs.get(node);
+    let node, cb;
+    for (node of dep) {
+      cb = funs.get(node);
       if (cb) {
         if (nodes) {
           nodes.push(node);
@@ -528,8 +586,12 @@ var Rtn = function () {
           const owner = node[propAnchor],
             attrs = owner.attributes;
           const elem = document.createElement(cb());
+          if (owner[getProps]) {
+            elem[getProps] = owner[getProps];
+          }
           node[propAnchor] = elem;
-          for (var i = 0; i < attrs.length; i++) {
+          let i = 0;
+          for (; i < attrs.length; i++) {
             elem.setAttributeNode(owner.removeAttributeNode(attrs[i])), i--;
           }
           owner.replaceWith(elem);
@@ -714,7 +776,8 @@ var Rtn = function () {
       cloneNode = new DocumentFragment();
     } else if (inNode[hasRoot]) {
       cloneNode = newDocument.createElement(inNode.nodeName);
-      for (var attr of inNode.attributes) {
+      let attr;
+      for (attr of inNode.attributes) {
         cloneNode.setAttribute(attr.name, attr.value);
       }
       if (!inNode[isLight]) {
@@ -727,7 +790,8 @@ var Rtn = function () {
       flatten: false
     }) : (inNode.content || inNode).childNodes;
     if (childs) {
-      for (var i = 0; i < childs.length; i++) {
+      let i = 0;
+      for (; i < childs.length; i++) {
         renderCallback(childs[i], cloneNode.content || cloneNode, slots, clean);
       }
     }
