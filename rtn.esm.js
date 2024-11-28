@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.9
+* Reacton v4.0.10
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -54,6 +54,10 @@ class propHooks {
     return true;
   }
 }
+const stateHooks = {
+  get: (target, prop) => target[prop],
+  set: (target, prop, value) => (target[prop] = value, true)
+};
 const configMutations = {
   childList: true,
   subtree: true
@@ -91,8 +95,6 @@ async function _rtn(...args) {
           serializable
         }) : this;
         const body = new DOMParser().parseFromString('', 'text/html').body;
-        const props = this[getProps];
-        delete this[getProps];
         const service = {
           funs: new WeakMap(),
           evns: new WeakMap(),
@@ -104,7 +106,8 @@ async function _rtn(...args) {
           target,
           root,
           body,
-          time
+          time,
+          mode
         };
         SERVICE.set(this, service);
         const state = new Proxy(getObserver(target, service), {
@@ -113,8 +116,6 @@ async function _rtn(...args) {
               return root;
             } else if (prop === getAlias) {
               return alias;
-            } else if (prop === '$props') {
-              return props;
             } else if (prop === '$state') {
               return state;
             } else if (prop in target) {
@@ -133,14 +134,8 @@ async function _rtn(...args) {
           $data: {
             value: this.dataset
           },
-          $props: {
-            value: mode !== 'closed' ? props : undefined
-          },
           $state: {
-            value: mode !== 'closed' ? new Proxy(state, {
-              get: (target, prop) => target[prop],
-              set: (target, prop, value) => (target[prop] = value, true)
-            }) : undefined
+            value: mode !== 'closed' ? new Proxy(state, stateHooks) : undefined
           },
           [isLight]: {
             value: root === this
@@ -156,8 +151,15 @@ async function _rtn(...args) {
             bools,
             root,
             body,
-            state
+            state,
+            mode
           } = service;
+        if (this[getProps]) {
+          Object.defineProperty(this, '$props', {
+            value: mode !== 'closed' ? this[getProps] : undefined
+          });
+          delete this[getProps];
+        }
         if (typeof arg.startConnect === 'function') {
           await arg.startConnect.call(state);
         }
@@ -321,27 +323,43 @@ const prepareTemplate = (service, node, vars) => {
     } else {
       const cb = vars ? exec.call(state, node.value.trim()) : getCallback(state, node.value.trim());
       if (node.nodeName === '$view') {
-        owner.removeAttribute('$view');
+        let childs;
+        if (owner.childNodes.length) {
+          childs = new DocumentFragment();
+          childs.append(...owner.childNodes);
+        }
         if (vars) {
-          owner[propView] = cb;
+          owner[propView] = childs ? {
+            cb,
+            service,
+            childs
+          } : {
+            cb
+          };
         } else {
-          let val,
-            obj = {};
+          owner.removeAttribute('$view');
+          const obj = childs ? {
+            service,
+            childs
+          } : {};
           funs.set(obj, cb);
           nodes.push(obj);
-          val = cb();
-          nodes.pop();
-          const elem = document.createElement(val);
+          const elem = document.createElement(cb());
+          obj[propAnchor] = elem;
+          if (childs) {
+            elem.append(childs.cloneNode(true));
+          }
           if (owner[getProps]) {
             elem[getProps] = owner[getProps];
           }
-          obj[propAnchor] = elem;
           let i = 0,
             attrs = owner.attributes;
           for (; i < attrs.length; i++) {
             elem.setAttributeNode(owner.removeAttributeNode(attrs[i])), i--;
           }
+          prepareTemplate(service, elem, vars);
           owner.replaceWith(elem);
+          return nodes.pop();
         }
       } else {
         if (node.nodeName[0] === ':') {
@@ -393,47 +411,42 @@ const prepareTemplate = (service, node, vars) => {
     }
     return owner.removeAttribute(node.nodeName);
   } else {
-    let isView,
-      isCycle,
-      attrs = node.attributes;
-    if (attrs.length) {
+    let isCycle;
+    if (node.attributes) {
+      const attrs = node.attributes;
       if (attrs['$props']) {
-        const $props = attrs['$props'],
-          {
-            state
-          } = service;
-        node.removeAttribute('$props');
-        if ($props.value) {
-          let prop,
-            obj = {},
-            props = $props.value.split(',');
-          for (prop of props) {
-            prop = prop.trim();
-            obj[prop] = state[prop];
+        if (service.mode !== 'closed') {
+          const $props = attrs['$props'],
+            {
+              state
+            } = service;
+          if ($props.value) {
+            let prop,
+              obj = {},
+              props = $props.value.split(',');
+            for (prop of props) {
+              prop = prop.trim();
+              obj[prop] = state[prop];
+            }
+            node[getProps] = new Proxy(obj, new propHooks(state));
+          } else {
+            node[getProps] = state;
           }
-          node[getProps] = new Proxy(obj, new propHooks(state));
-        } else {
-          node[getProps] = state;
         }
+        node.removeAttribute('$props');
       }
       if (attrs['$view']) {
         node.removeAttribute('$for');
-        isView = true;
+        return prepareTemplate(service, attrs['$view'], vars);
       } else if (attrs['$for']) {
         isCycle = true;
       }
       let i = 0;
       for (; i < attrs.length; i++) {
-        if (attrs[i].name[0] === ':' || attrs[i].name[0] === '@') {
-          prepareTemplate(service, attrs[i], vars) || i--;
-        }
+        prepareTemplate(service, attrs[i], vars) || i--;
       }
     }
-    if (isView) {
-      prepareTemplate(service, attrs['$view'], vars);
-    } else if (isCycle) {
-      prepareTemplate(service, attrs['$for'], vars);
-    } else {
+    if (!isCycle && node.nodeType !== 2 && !node[isLight]) {
       let i = 0,
         childs = node.childNodes;
       for (; i < childs.length; i++) {
@@ -539,9 +552,12 @@ const updateDOM = (evns, node, frag) => {
       }
     }
     if (frag[propView]) {
-      const elem = document.createElement(frag[propView]());
+      const elem = document.createElement(frag[propView].cb());
       if (frag[getProps]) {
         elem[getProps] = frag[getProps];
+      }
+      if (!elem[isLight] && frag[propView].childs) {
+        elem.append(prepareTemplate(frag[propView].service, frag[propView].childs.cloneNode(true)));
       }
       let i = 0,
         attrs = node.attributes;
@@ -583,10 +599,13 @@ const callHandler = (dep, {
         const owner = node[propAnchor],
           attrs = owner.attributes;
         const elem = document.createElement(cb());
-        if (owner[getProps]) {
-          elem[getProps] = owner[getProps];
-        }
         node[propAnchor] = elem;
+        if (owner.$props) {
+          elem[getProps] = owner.$props;
+        }
+        if (!elem[isLight] && node.childs) {
+          elem.append(prepareTemplate(node.service, node.childs.cloneNode(true)));
+        }
         let i = 0;
         for (; i < attrs.length; i++) {
           elem.setAttributeNode(owner.removeAttributeNode(attrs[i])), i--;
