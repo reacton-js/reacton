@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.10
+* Reacton v4.0.11
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -262,7 +262,7 @@ var Rtn = function () {
           node.splitText(arr.index);
         }
       }
-    } else if (node.nodeType === 2 && (node.nodeName[0] === ':' || node.nodeName[0] === '@' || node.nodeName[0] === '$')) {
+    } else if (node.nodeType === 2) {
       const {
         state,
         funs,
@@ -414,9 +414,9 @@ var Rtn = function () {
       }
       return owner.removeAttribute(node.nodeName);
     } else {
-      let isCycle;
-      if (node.attributes) {
-        const attrs = node.attributes;
+      if (node.attributes && node.attributes.length) {
+        let isCycle,
+          attrs = node.attributes;
         if (attrs['$props']) {
           if (service.mode !== 'closed') {
             const $props = attrs['$props'],
@@ -444,12 +444,19 @@ var Rtn = function () {
         } else if (attrs['$for']) {
           isCycle = true;
         }
-        let i = 0;
+        let i = 0,
+          char;
         for (; i < attrs.length; i++) {
-          prepareTemplate(service, attrs[i], vars) || i--;
+          char = attrs[i].name[0];
+          if (char === ':' || char === '@' || char === '$') {
+            prepareTemplate(service, attrs[i], vars) || i--;
+          }
+        }
+        if (isCycle) {
+          return node;
         }
       }
-      if (!isCycle && node.nodeType !== 2 && !node[isLight]) {
+      if (!node[isLight]) {
         let i = 0,
           childs = node.childNodes;
         for (; i < childs.length; i++) {
