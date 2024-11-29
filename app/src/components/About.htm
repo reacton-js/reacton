@@ -1,0 +1,17 @@
+<h2>{{ title }}</h2>
+<p>{{ message }}</p>
+
+<script>
+  import { httpRequest } from '../helpers'
+
+  exports = class WAbout {
+    static mode = 'open'
+
+    static async startConnect() {
+      const about = await httpRequest('/db?page=about')
+      
+      this.title = about.title
+      this.message = about.message
+    }
+  }
+</script>

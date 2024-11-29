@@ -1,5 +1,5 @@
 /**
-* Reacton v4.0.11
+* Reacton v4.0.12
 * (c) 2022-2024 | github.com/reacton-js
 * Released under the MIT License.
 **/
@@ -344,7 +344,10 @@ const prepareTemplate = (service, node, vars) => {
           } : {};
           funs.set(obj, cb);
           nodes.push(obj);
-          const elem = document.createElement(cb());
+          const tag = cb();
+          const temp = document.createElement('template');
+          temp.innerHTML = `<${tag}></${tag}>`;
+          const elem = temp.content.firstChild;
           obj[propAnchor] = elem;
           if (childs) {
             elem.append(childs.cloneNode(true));

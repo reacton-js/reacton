@@ -1,0 +1,19 @@
+<div $view="page"></div>
+
+<script>
+  import { emitRouter } from '../helpers'
+
+  exports = class WContent {
+    static mode = 'open'
+
+    static startConnect() {
+      // add an event handler to the emitter with an optional route parameter
+      emitRouter.addEventListener(`(:page)?`, event => {
+        this.page = `w-${event.params.page || 'home'}` 
+      })
+      
+      // initiate an event for the "href" value of the current page
+      this.$router(emitRouter, location.href)
+    }
+  }
+</script>

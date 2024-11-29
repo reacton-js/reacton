@@ -41,7 +41,22 @@ class WHello {
 
 <br>
 
-***The project is in development...***
+1. ~~[Quick start](#quick-start)~~
+2. ~~[Component state](#component-state)~~
+3. ~~[Reactive properties](#reactive-properties)~~
+4. ~~[Cycles](#cycles)~~
+5. ~~[Mixins](#mixins)~~
+6. ~~[Static properties](#static-properties)~~
+7. ~~[Special methods](#special-methods)~~
+8. ~~[Event Emitter](#event-emitter)~~
+9. ~~[Router](#router)~~
+10. ~~[Server-side rendering](#server-rendering)~~
+
+<br>
+<hr>
+<br>
+
+***The process of writing documentation for a project...***
 
 <br>
 <br>
