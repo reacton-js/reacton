@@ -43,9 +43,9 @@ class WHello {
 
 1. [Быстрый старт](#quick-start)
 2. [Состояние компонента](#component-state)
-3. ~~[Реактивные свойства](#reactive-properties)~~
-4. ~~[Циклы](#cycles)~~
-5. ~~[Примеси](#mixins)~~
+3. [Циклы](#cycles)
+4. [Примеси](#mixins)
+5. ~~[Реактивные свойства](#reactive-properties)~~
 6. ~~[Статические свойства](#static-properties)~~
 7. ~~[Специальные методы](#special-methods)~~
 8. ~~[Эмиттер событий](#event-emitter)~~
@@ -366,6 +366,211 @@ class WHello {
   // вернуть HTML-разметку компонента
   static template = `<h1 :title="message">Привет, {{ message }}!</h1>`
 }
+```
+
+<br>
+<br>
+<h2 id="cycles">Циклы</h2>
+
+<br>
+
+Reacton поддерживает три вида циклов *«for»*, которые реализованы в  JavaScript. Все они определяются с помощью специального атрибута ***$for*** и выводят содержимое своих HTML-элементов столько раз, сколько предусмотрено условием цикла.
+
+*В скомпилированном компоненте, данный атрибут отображаться не будет.*
+
+В примере ниже, цикл *«for»* выводит 10 параграфов с числами от 0 до 9:
+
+```js
+class WHello {
+  // вернуть HTML-разметку компонента
+  static template = `
+    <div $for="i = 0; i < 10; i++">
+      <p>Число: {{ i }}</p>
+    </div>
+  `
+}
+```
+
+В специальном атрибуте ***$for*** нельзя использовать операторы определения переменных: *var*, *let* и *const* соответственно. Это приведёт к ошибке:
+
+```js
+static template = `
+  <div $for="let i = 0; i < 10; i++">
+    <p>Число: {{ i }}</p>
+  </div>
+`
+```
+
+<br>
+
+Цикл *«for-in»* используется для вывода содержимого объектов, как показано ниже:
+
+```js
+class WHello {
+  // инициализация свойства объекта состояния
+  user = {
+    name: 'Иван',
+    age: 32
+  }
+
+  // вернуть HTML-разметку компонента
+  static template = `
+    <ul $for="prop in user">
+      <li>
+        <b>{{ prop }}</b>: {{ user[prop] }}
+      </li>
+    </ul>
+  `
+}
+```
+
+<br>
+
+Цикл *«for-of»* предназначен для работы с массивами:
+
+```js
+class WHello {
+  // инициализация свойства объекта состояния
+  colors = ['красный', 'зелёный', 'синий']
+
+  // вернуть HTML-разметку компонента
+  static template = `
+    <ul $for="col of colors">
+      <li>{{ col }}</li>
+    </ul>
+  `
+}
+```
+
+<br>
+
+При использовании событий в циклах с помощью специального атрибута ***@event***, они будут использовать актуальное значение переменной цикла для своей фазы итерации:
+
+```js
+static template = `
+  <ul $for="col of colors">
+    <li @click="console.log(col)">{{ col }}</li>
+  </ul>
+`
+```
+
+*Подробнее об этих событиях и других специальных атрибутах, будет рассказано далее в руководстве.*
+
+<br>
+
+Можно применять циклы с любой глубиной вложенности:
+
+```js
+class WHello {
+  // инициализация свойства объекта состояния
+  users = [
+    {
+      name: 'Иван',
+      age: 32,
+      skills: {
+        frontend: ['HTML', 'CSS'],
+        backend: ['Ruby', 'PHP', 'MySQL']
+      }
+    },
+    {
+      name: 'Ольга',
+      age: 25,
+      skills: {
+        frontend: ['HTML', 'JavaScript'],
+        backend: ['PHP']
+      }
+    },
+    {
+      name: 'Максим',
+      age: 30,
+      skills: {
+        frontend: ['HTML', 'CSS', 'JavaScript', 'jQuery'],
+        backend: ['Ruby', 'MySQL']
+      }
+    }
+  ]
+
+  // вернуть HTML-разметку компонента
+  static template = `
+    <div $for="user of users">
+      <div>
+        <p>
+          <b>Имя</b>: {{ user.name }}
+        </p>
+        <p>
+          <b>Возраст</b>: {{ user.age }}
+        </p>
+        <div $for="category in user.skills">
+          <b>{{ category[0].toUpperCase() + category.slice(1) }}</b>:
+          <ol $for="item of user.skills[category]">
+            <li>{{ item }}</li>
+          </ol>
+        </div>
+      </div>
+      <hr>
+    </div>
+  `
+}
+```
+
+<br>
+<br>
+<h2 id="mixins">Примеси</h2>
+
+<br>
+
+Примесь – общий термин в объектно-ориентированном программировании: класс, который содержит в себе методы для других классов. Эти методы могут использовать разные компоненты, что позволяет не создавать методы с одинаковым функционалом для каждого компонента отдельно.
+
+В примере ниже, метод *printName()* из примеси используют компоненты Hello и Goodbye:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!-- подключить компонент Hello к документу -->
+  <w-hello></w-hello>
+
+  <!-- подключить компонент Goodbye к документу -->
+  <w-goodbye></w-goodbye>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    // определить класс Mixin для общих методов
+    class Mixin {
+      printName() {
+        return this.userName
+      }
+    }
+
+    // расширить класс компонента Hello от класса Mixin
+    class WHello extends Mixin {
+      // инициализация свойств объекта состояния
+      userName = 'Анна'
+
+      // вернуть HTML-разметку компонента
+      static template = `<h1>Привет, {{ printName() }}!</h1>`
+    }
+
+    // расширить класс компонента Goodbye от класса Mixin
+    class WGoodbye extends Mixin {
+      // инициализация свойств объекта состояния
+      userName = 'Иван'
+
+      // вернуть HTML-разметку компонента
+      static template = `<p>До свидания, {{ printName() }}...</p>`
+    }
+    
+    // передать классы компонентов Hello и Goodbye функции Rtn
+    Rtn(WHello, WGoodbye)
+  </script>
+</body>
+</html>
 ```
 
 <br>

@@ -43,9 +43,9 @@ class WHello {
 
 1. [Quick start](#quick-start)
 2. [Component state](#component-state)
-3. ~~[Reactive properties](#reactive-properties)~~
-4. ~~[Cycles](#cycles)~~
-5. ~~[Mixins](#mixins)~~
+3. [Cycles](#cycles)
+4. [Mixins](#mixins)
+5. ~~[Reactive properties](#reactive-properties)~~
 6. ~~[Static properties](#static-properties)~~
 7. ~~[Special methods](#special-methods)~~
 8. ~~[Event Emitter](#event-emitter)~~
@@ -366,6 +366,211 @@ class WHello {
   // return the HTML markup of the component
   static template = `<h1 :title="message">Hello, {{ message }}!</h1>`
 }
+```
+
+<br>
+<br>
+<h2 id="cycles">Cycles</h2>
+
+<br>
+
+Reacton supports three kinds of *«for»* loops that are implemented in JavaScript. They are all defined with a special ***$for*** attribute and output the contents of their HTML elements as many times as required by the loop condition.
+
+*This attribute will not be displayed in the compiled component.*
+
+In the example below, the *«for»* loop outputs 10 paragraphs with numbers from 0 to 9:
+
+```js
+class WHello {
+  // return the HTML markup of the component
+  static template = `
+    <div $for="i = 0; i < 10; i++">
+      <p>Number: {{ i }}</p>
+    </div>
+  `
+}
+```
+
+In the special attribute ***$for*** you cannot use variable definition operators: *var*, *let* and *const* respectively. This will result in an error:
+
+```js
+static template = `
+  <div $for="let i = 0; i < 10; i++">
+    <p>Number: {{ i }}</p>
+  </div>
+`
+```
+
+<br>
+
+The *«for-in»* loop is used to output the contents of objects, as shown below:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  user = {
+    name: 'John',
+    age: 32
+  }
+
+  // return the HTML markup of the component
+  static template = `
+    <ul $for="prop in user">
+      <li>
+        <b>{{ prop }}</b>: {{ user[prop] }}
+      </li>
+    </ul>
+  `
+}
+```
+
+<br>
+
+The *«for-of»* loop is designed to work with arrays:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  colors = ['red', 'green', 'blue']
+
+  // return the HTML markup of the component
+  static template = `
+    <ul $for="col of colors">
+      <li>{{ col }}</li>
+    </ul>
+  `
+}
+```
+
+<br>
+
+When using events in loops using the special ***@event*** attribute, they will use the current value of the loop variable for their iteration phase:
+
+```js
+static template = `
+  <ul $for="col of colors">
+    <li @click="console.log(col)">{{ col }}</li>
+  </ul>
+`
+```
+
+*More details about these events and other special attributes will be discussed later in the guide.*
+
+<br>
+
+You can use loops with any nesting depth:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  users = [
+    {
+      name: 'John',
+      age: 32,
+      skills: {
+        frontend: ['HTML', 'CSS'],
+        backend: ['Ruby', 'PHP', 'MySQL']
+      }
+    },
+    {
+      name: 'Clementine',
+      age: 25,
+      skills: {
+        frontend: ['HTML', 'JavaScript'],
+        backend: ['PHP']
+      }
+    },
+    {
+      name: 'Chelsey',
+      age: 30,
+      skills: {
+        frontend: ['HTML', 'CSS', 'JavaScript', 'jQuery'],
+        backend: ['Ruby', 'MySQL']
+      }
+    }
+  ]
+
+  // return the HTML markup of the component
+  static template = `
+    <div $for="user of users">
+      <div>
+        <p>
+          <b>Name</b>: {{ user.name }}
+        </p>
+        <p>
+          <b>Age</b>: {{ user.age }}
+        </p>
+        <div $for="category in user.skills">
+          <b>{{ category[0].toUpperCase() + category.slice(1) }}</b>:
+          <ol $for="item of user.skills[category]">
+            <li>{{ item }}</li>
+          </ol>
+        </div>
+      </div>
+      <hr>
+    </div>
+  `
+}
+```
+
+<br>
+<br>
+<h2 id="mixins">Mixins</h2>
+
+<br>
+
+Mixin is a general term in object-oriented programming: a class that contains methods for other classes. These methods can use different components, which eliminates the need to create methods with the same functionality for each component separately.
+
+In the example below, the mixin's *printName()* method is used by the Hello and Goodbye components:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello></w-hello>
+
+   <!-- connect Goodbye component to the document -->
+  <w-goodbye></w-goodbye>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    // define a Mixin class for common methods
+    class Mixin {
+      printName() {
+        return this.userName
+      }
+    }
+
+    // extend the Hello component class from the Mixin class
+    class WHello extends Mixin {
+      // initializing the properties of a state object
+      userName = 'Anna'
+
+      // return the HTML markup of the component
+      static template = `<h1>Hello, {{ printName() }}!</h1>`
+    }
+
+    // extend the Goodbye component class from the Mixin class
+    class WGoodbye extends Mixin {
+      // initializing the properties of a state object
+      userName = 'John'
+
+      // return the HTML markup of the component
+      static template = `<p>Goodbye, {{ printName() }}...</p>`
+    }
+
+    // pass the Hello and Goodbye component classes to the Rtn function
+    Rtn(WHello, WGoodbye)
+  </script>
+</body>
+</html>
 ```
 
 <br>
