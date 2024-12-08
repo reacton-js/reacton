@@ -42,7 +42,7 @@ class WHello {
 <br>
 
 1. [Quick start](#quick-start)
-2. ~~[Component state](#component-state)~~
+2. [Component state](#component-state)
 3. ~~[Reactive properties](#reactive-properties)~~
 4. ~~[Cycles](#cycles)~~
 5. ~~[Mixins](#mixins)~~
@@ -225,7 +225,7 @@ An example of a simple embedded component is shown below:
           
     <style>
       h1 {
-        color: {{ this.color }};
+        color: {{ color }};
       }
     </style>
 
@@ -286,6 +286,87 @@ hello.$state.color = 'blue'
 The color and content of the header will change:
 
 <h1 style="color: blue;">Hello, Web Components!</h1>
+
+<br>
+<br>
+<h2 id="component-state">Component state</h2>
+
+<br>
+
+Each component can contain changing data, which is called a state. The state can be defined in the constructor of the component class:
+
+```js
+class WHello {
+  constructor() {
+    // initializing the properties of a state object
+    this.message = 'Reacton'
+    this.color = 'orangered'
+  }
+  ...
+}
+```
+
+Alternatively, using the new syntax, you can define the state directly in the class itself:
+
+```js
+class WHello {
+  // initializing the properties of a state object
+  message = 'Reacton'
+  color = 'orangered'
+  ...
+}
+```
+
+<br>
+
+The methods of a component are not a state. They are designed to perform actions with the state of the component and are stored in the prototype of the state object:
+
+```js
+class WHello {
+  // initializing the properties of a state object
+  message = 'Reacton'
+
+  // define the method of the state object
+  printStr(str) {
+    return this.message
+  }
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ printStr() }}!</h1>`
+}
+```
+
+<br>
+
+The special property *$state* is used to access the state object. Using this property, you can get or assign a new value to the state, as shown below:
+
+```
+hello.$state.message = 'Web Components'
+```
+
+The component content is updated automatically based on the new state.
+
+<br>
+
+When the content of a component is updated, its old DOM is not deleted. This means that the handlers assigned to the elements inside the component are preserved, since the old element is not replaced by a new element.
+
+In the example below, the handler for the &lt;h1&gt; element will still work after the component state is updated. Because the update will only change the old value of its attribute and text content:
+
+```js
+class WHello {
+  // initializing the properties of a state object
+  message = 'Reacton'
+
+  /* this method is performed after connecting the component to the document
+    when the DOM has already been created for the component from which you can select elements */
+  static connected() {
+    this.$('h1').addEventListener('click', e => console.log(e.target))
+  }
+
+  // return the HTML markup of the component
+  static template = `<h1 :title="message">Hello, {{ message }}!</h1>`
+}
+```
 
 <br>
 <br>
