@@ -601,7 +601,7 @@ To display various components, a special attribute ***$view*** is used. This att
       // initializing the property of a state object
       compName = 'w-hello'
 
-      // initializing the method of a state object
+      // define the method of the state object
       changeView() {
         this.compName = this.compName === 'w-hello' ? 'w-goodbye' : 'w-hello'
       }
@@ -712,7 +712,7 @@ class WHello {
   // initializing the property of a state object
   hide = true
 
-  // initializing the method of a state object
+  // define the method of the state object
   changeHide() {
     this.hide = !this.hide
   }
