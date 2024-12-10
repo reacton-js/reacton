@@ -45,12 +45,13 @@ class WHello {
 2. [Component state](#component-state)
 3. [Cycles](#cycles)
 4. [Mixins](#mixins)
-5. ~~[Reactive properties](#reactive-properties)~~
-6. ~~[Static properties](#static-properties)~~
-7. ~~[Special methods](#special-methods)~~
-8. ~~[Event Emitter](#event-emitter)~~
-9. ~~[Router](#router)~~
-10. ~~[Server-side rendering](#server-rendering)~~
+5. [Views](#views)
+6. [Reactive properties](#reactive-properties)
+7. ~~[Static properties](#static-properties)~~
+8. ~~[Special methods](#special-methods)~~
+9. ~~[Event Emitter](#event-emitter)~~
+10. ~~[Router](#router)~~
+11. ~~[Server-side rendering](#server-rendering)~~
 
 <br>
 <hr>
@@ -323,7 +324,7 @@ The methods of a component are not a state. They are designed to perform actions
 
 ```js
 class WHello {
-  // initializing the properties of a state object
+  // initializing the property of a state object
   message = 'Reacton'
 
   // define the method of the state object
@@ -354,7 +355,7 @@ In the example below, the handler for the &lt;h1&gt; element will still work aft
 
 ```js
 class WHello {
-  // initializing the properties of a state object
+  // initializing the property of a state object
   message = 'Reacton'
 
   /* this method is performed after connecting the component to the document
@@ -550,7 +551,7 @@ In the example below, the mixin's *printName()* method is used by the Hello and 
 
     // extend the Hello component class from the Mixin class
     class WHello extends Mixin {
-      // initializing the properties of a state object
+      // initializing the property of a state object
       userName = 'Anna'
 
       // return the HTML markup of the component
@@ -559,7 +560,7 @@ In the example below, the mixin's *printName()* method is used by the Hello and 
 
     // extend the Goodbye component class from the Mixin class
     class WGoodbye extends Mixin {
-      // initializing the properties of a state object
+      // initializing the property of a state object
       userName = 'John'
 
       // return the HTML markup of the component
@@ -571,6 +572,177 @@ In the example below, the mixin's *printName()* method is used by the Hello and 
   </script>
 </body>
 </html>
+```
+
+<br>
+<br>
+<h2 id="views">Views</h2>
+
+<br>
+
+To display various components, a special attribute ***$view*** is used. This attribute can be assigned to any element, but usually the DIV element is used. The element containing the attribute is replaced by the component whose name is contained in the value of this attribute, for example:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+   <!-- connect WContent component to the document -->
+  <w-content></w-content>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WContent {
+      // initializing the property of a state object
+      compName = 'w-hello'
+
+      // initializing the method of a state object
+      changeView() {
+        this.compName = this.compName === 'w-hello' ? 'w-goodbye' : 'w-hello'
+      }
+      
+      // return the HTML markup of the component
+      static template = `
+        <div $view="compName"></div>
+        <button @click="changeView">Switch</button>
+      `
+    }
+
+    class WHello {
+      // initializing the property of a state object
+      userName = 'Anna'
+
+      // return the HTML markup of the component
+      static template = `<h1>Hello, {{ userName }}!</h1>`
+    }
+
+    class WGoodbye {
+      // initializing the property of a state object
+      userName = 'John'
+
+      // return the HTML markup of the component
+      static template = `<p>Goodbye, {{ userName }}...</p>`
+    }
+    
+    // pass component classes to Rtn function
+    Rtn(WContent, WHello, WGoodbye)
+  </script>
+</body>
+</html>
+```
+
+The ***$view*** attribute cannot be used with loops. The example below will result in an error:
+
+```js
+static template = `
+  <div $view="compName" $for="i = 0; i < 10; i++">
+    <p>Number: {{ i }}</p>
+  </div>
+`
+```
+
+<br>
+<br>
+<h2 id="reactive-properties">Reactive properties</h2>
+
+<br>
+
+All state object properties used in a component are reactive, meaning that when their value changes, the values ​​in all places in the component's HTML markup where these properties are used also change.
+
+To insert reactive properties into [text nodes](https://javascript.info/dom-nodes), use double curly braces:
+
+```js
+static template = `
+  <h1>Hello, {{ message }}!</h1>
+  
+  <style>
+    h1 {
+      color: {{ color }};
+    }
+  </style>
+`
+```
+
+To insert a reactive property into an attribute, you must precede its name with a colon:
+
+```js
+static template = `<h1 :title="message">Hello, Reacton!</h1>`
+```
+
+In the example below, a reactive property is added to a boolean attribute:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  hide = true
+
+  // return the HTML markup of the component
+  static template = `<h1 :hidden="hide">Hello, Reacton!</h1>`
+}
+```
+
+*The colon before the attribute name is used only in the component template HTML markup to indicate that the attribute accepts a reactive property. After compilation, the resulting component markup will display the attribute names without the colons.*
+
+<br>
+
+For event attributes, the attribute name is preceded by the ***@*** symbol, followed by the event name without the ***on*** prefix, as shown below:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  hide = true
+
+  // return the HTML markup of the component
+  static template = `
+    <h1 :hidden="hide">Hello, Reacton!</h1>
+    <button @click="hide = !hide">Hide/Show</button>
+  `
+}
+```
+
+Instead of directly changing the reactive property in the event attribute, you can pass the name of a method that changes the reactive property, for example:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  hide = true
+
+  // initializing the method of a state object
+  changeHide() {
+    this.hide = !this.hide
+  }
+
+  // return the HTML markup of the component
+  static template = `
+    <h1 :hidden="hide">Hello, Reacton!</h1>
+    <button @click="changeHide">Hide/Show</button>
+  `
+}
+```
+
+<br>
+
+The event attributes contain an [event](https://javascript.info/introduction-browser-events#event-object) object, using the [target](https://javascript.info/bubbling-and-capturing#event-target) property of which you can get a reference to the element on which the event occurred:
+
+```js
+static template = `<button @click="console.log(event.target)">Show in console</button>`
+```
+
+Event attributes can have the same parameters that are passed in the third argument to the [addEventListener](https://javascript.info/introduction-browser-events#addeventlistener) method. These parameters are specified separated by a dot after the event name:
+
+```js
+@click.once.capture.passive
+```
+
+In the example below, the element that triggers the event will only be shown in the console once:
+
+```js
+static template = `<button @click.once="console.log(event.target)">Show in console</button>`
 ```
 
 <br>
