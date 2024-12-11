@@ -48,7 +48,7 @@ class WHello {
 5. [Views](#views)
 6. [Reactive properties](#reactive-properties)
 7. [Static properties](#static-properties)
-8. ~~[Special methods](#special-methods)~~
+8. [Special methods](#special-methods)
 9. ~~[Event Emitter](#event-emitter)~~
 10. ~~[Router](#router)~~
 11. ~~[Server-side rendering](#server-rendering)~~
@@ -1025,6 +1025,298 @@ In the example below, the **id** property does not exist in the component state 
   </script>
 </body>
 ```
+
+<br>
+<br>
+<h2 id="special-methods">Special methods</h2>
+
+<br>
+
+All special methods and properties start with the dollar symbol «$» followed by the name of the method or property.
+
+**\$()** – this special method selects an element from the component content by the specified selector, for example, to add an event handler to the element:
+
+```js
+// it is performed at the end of connecting the component to the document
+static connected() {
+  // get an element using the sampling method
+  const elem = this.$('h1')
+
+  // add an event handler to the element
+  elem.addEventListener('click', e => console.log(e.target))
+}
+```
+
+*This method fetches the contents of private components only if it is called from static methods of the component class.*
+
+<br>
+
+**\$$()** – this special method selects all elements from the component content by the specified selector, for example, to add event handlers to the elements when iterating through them in a loop:
+
+```js
+// it is performed at the end of connecting the component to the document
+static connected() {
+  // get all elements using the sampling method
+  const elems = this.$$('h1')
+
+  // iterate through a collection of elements in a loop
+  for (const elem of elems) {
+    // add an event handler to the element
+    elem.addEventListener('click', e => console.log(e.target))
+  }
+}
+```
+
+*This method fetches the contents of private components only if it is called from static methods of the component class.*
+
+<br>
+
+**\$entities()** – this special method neutralizes a string containing HTML content obtained from unreliable sources. By default, the ampersand character «&amp;» is escaped, characters less than «&lt;» and more than «&gt;», double «&quot;» and single quotes «&#39;», for example:
+
+```js
+class WHello {
+  // it is performed at the beginning of connecting the component to the document
+  static async startConnect() {
+    // getting HTML content from a conditional server
+    const html = await new Promise(ok => setTimeout(() => ok('<script>dangerous code<\/script>'), 1000))
+
+    // initialization of a state object property with neutralized HTML content
+    this.message = this.$entities(html)
+  }
+
+  // return the HTML markup of the component
+  static template = `{{ message }}`
+}
+```
+
+In addition to the above characters, you can escape any characters by passing an array in the second and subsequent arguments of the form: [regular expression, replacement string], for example:
+
+```js
+this.$entities(html, [/\(/g, '&lpar;'], [/\)/g, '&rpar;'])
+```
+
+*This method is available as a property of the Rtn function, as shown below:*
+
+```js
+Rtn.entities(html)
+```
+
+*or [named import](https://javascript.info/import-export#import) when using the modular version of the framework:*
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello></w-hello>
+
+  <script type="module">
+    import Rtn, { Entities } from "./rtn.esm.js"
+
+    class WHello {
+      // return the HTML markup of the component
+      static template = `${ Entities('<script>dangerous code<\/script>') }`
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
+```
+
+<br>
+
+The special methods: *\$event()*, *\$router()* and *\$render()* will be discussed in the following sections. As with the *\$entities()* method, they also have their own named imports:
+
+```js
+import Rtn, { Tag, Event, Router, Render } from "./rtn.esm.js"
+```
+
+*The Rtn function is always imported by default.*
+
+<br>
+
+**\$state** – this special property refers to the [proxy](https://javascript.info/proxy) of the component's state object. This means that if the required property is not found in the state object, the search occurs in the component itself.
+
+In the example below, the **id** property does not exist in the component state object. Therefore, it is requested from the component itself:
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello id="hello"></w-hello>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WHello {
+      // return the HTML markup of the component
+      static template = `<h1>Hello, component with ID {{ id }}!</h1>`
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
+```
+
+<br>
+
+**\$host** – this special property refers to the element that connects the component to the document, i.e. the component element. This can be useful if properties with the same name are present in both the state object and the component..
+
+The proxy of the state object initially looks for a property in the state object itself, which means that to get the property of the same name from the component element, you must use the special property *$host*, as shown below:
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello id="hello"></w-hello>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WHello {
+      // initializing the property of a state object
+      id = 'Reacton'
+
+      // return the HTML markup of the component
+      static template = `
+        <h1>Hello, the ID property with the value {{ id }}!</h1>
+        <h2>Hello, component with ID {{ $host.id }}!</h2>
+      `
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
+```
+
+<br>
+
+**\$shadow** – this special property refers to the [Shadow DOM](https://javascript.info/shadow-dom) of the component:
+
+```
+hello.$shadow
+```
+
+*For closed components and components without a Shadow DOM, this property returns "null".*
+
+<br>
+
+**\$data** – this special property refers to the component's [dataset](https://javascript.info/dom-attributes-and-properties#non-standard-attributes-dataset) object, which is used to access [custom attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes), for example:
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello data-message="Reacton"></w-hello>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WHello {
+      // return the HTML markup of the component
+      static template = `<h1>Hello, {{ $data.message }}!</h1>`
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
+```
+
+<br>
+
+**\$props** – this special property refers to the state object of the parent component when the special attribute ***\$props*** without a value is passed to the child component:
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello></w-hello>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    // parent component Hello
+    class WHello {
+       // initializing the properties of a state object
+      message = 'Reacton'
+      color = 'orangered'
+
+      // return the HTML markup of the component
+      static template = `<w-inner $props></w-inner>`
+    }
+
+    // child component Inner
+    class WInner {
+      static mode = 'open' // add Shadow DOM
+
+      // return the HTML markup of the component
+      static template = `
+        <h1>Hello, {{ $props.message }}!</h1>
+        
+        <style>
+          h1 {
+            color: {{ $props.color }};
+          }
+        </style>
+      `
+    }
+
+    // pass the Hello and Inner component classes to the Rtn function
+    Rtn(WHello, WInner)
+  </script>
+</body>
+```
+
+*The special attribute ***\$props*** is specified here without any value:*
+
+```js
+// return the HTML markup of the component
+static template = `<w-inner $props></w-inner>`
+```
+
+To access the properties of the parent component's state object in the child component's HTML markup, a special property **\$props** is used, as shown below:
+
+```js
+// return the HTML markup of the component
+static template = `
+  <h1>Hello, {{ $props.message }}!</h1>
+  
+  <style>
+    h1 {
+      color: {{ $props.color }};
+    }
+  </style>
+`
+```
+
+If it is necessary to transfer only some properties from the parent component, and not the entire state object, then the special attribute ***\$props*** must contain a value in which the names of the properties to be transferred are specified, separated by commas:
+
+```js
+// return the HTML markup of the component
+static template = `<w-inner $props="message, color"></w-inner>`
+```
+
+You can change the state of external components via the special property **\$props** of internal ones, but not vice versa. Because here we use one-way communication between components:
+
+```js
+// parent component Hello
+class WHello {
+  // initializing the property of a state object
+  message = 'Reacton'
+
+  // return the HTML markup of the component
+  static template = `
+    <h1>Hello, {{ message }}!</h1>
+    <w-inner $props="message"></w-inner>
+  `
+}
+
+// child component Inner
+class WInner {
+  // return the HTML markup of the component
+  static template = `<button @click="$props.message='Web Components'">Change</button>`
+}
+```
+
+*In order for any components to be able to change data in any other components, custom events are used, which will be discussed further.*
 
 <br>
 <br>
