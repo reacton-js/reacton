@@ -47,7 +47,7 @@ class WHello {
 4. [Mixins](#mixins)
 5. [Views](#views)
 6. [Reactive properties](#reactive-properties)
-7. ~~[Static properties](#static-properties)~~
+7. [Static properties](#static-properties)
 8. ~~[Special methods](#special-methods)~~
 9. ~~[Event Emitter](#event-emitter)~~
 10. ~~[Router](#router)~~
@@ -743,6 +743,287 @@ In the example below, the element that triggers the event will only be shown in 
 
 ```js
 static template = `<button @click.once="console.log(event.target)">Show in console</button>`
+```
+
+<br>
+<br>
+<h2 id="static-properties">Static properties</h2>
+
+<br>
+
+**alias** – this static property allows you to add an alias for the ***this*** keyword, i.e. for the context of the state object:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  message = 'Reacton'
+
+  static alias = 'o' // add alias for "this"
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ o.message }}!</h1>`
+}
+```
+
+*By default, there is no need to add the ***this*** keyword before the state object property names. However, if an alias is added, then either the alias or this keyword must be used before the property and method names.*
+
+<br>
+
+**time** – this static property allows you to add a component refresh timer if you set it to "true" as shown below:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  message = 'Reacton'
+
+  static time = true // add refresh timer
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ message }}!</h1>`
+}
+```
+
+*The component update time in milliseconds is displayed in the console after each change to any property of the state object.*
+
+<br>
+
+**name** – this static property used, for example, when an anonymous class is passed to the Rtn function, as shown below:
+
+```js
+// pass the anonymous class of the Hello component to the Rtn function
+Rtn(class {
+  // initializing the property of a state object
+  message = 'Reacton'
+
+  static name = 'w-hello' // name of the component
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ message }}!</h1>`
+})
+```
+
+<br>
+
+**mode** – this static property responsible for adding a [Shadow DOM](https://javascript.info/shadow-dom) to the component. It can contain two values: "open" or "closed". In the latter case, when the component is closed, it is impossible to access the properties of its state object, methods for selecting elements and updating the content from the console.
+
+Access to the properties of the state object, methods for selecting and updating the content of the component, in closed components is possible only from static methods, for example:
+
+```js
+class WHello {
+  static mode = 'closed' // add a closed Shadow DOM
+
+  // it is performed at the end of connecting the component to the document
+  static connected() {
+    // get an element using the sampling method
+    const elem = this.$('h1')
+
+    // add an event handler to the element
+    elem.addEventListener('click', e => console.log(e.target))
+  }
+
+  // initializing the property of a state object
+  message = 'Reacton'
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ message }}!</h1>`
+}
+```
+
+*Only components with a Shadow DOM can contain [local styles](https://javascript.info/shadow-dom-style).*
+
+<br>
+
+**extends** – this static property responsible for creating [customized components](https://javascript.info/custom-elements#customized-built-in-elements), i.e. those that are embedded in standard HTML elements, for example:
+
+```html
+<body>
+  <!-- embed the Hello component in the header element -->
+  <header is="w-hello"></header>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WHello {
+      // initializing the property of a state object
+      message = 'Reacton'
+
+      static extends = 'header' // the name of the embedded element
+
+      // return the HTML markup of the component
+      static template = `<h1>Hello, {{ message }}!</h1>`
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
+```
+
+*The property must contain the name of the embedded element, and the embedded element itself must contain the [is](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/is) attribute with a value equal to the name of the component embedded in it.*
+
+<br>
+
+**serializable** – this static property responsible for [serializing](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/serializable) the Shadow DOM of the component using the [getHTML()](https://developer.mozilla.org/en-US/docs/Web/API/Element/getHTML) method. By default, it has the value "false".
+
+<br>
+
+**template()** – this static property returns the future HTML content of the component as a string:
+
+```js
+// return the HTML markup of the component
+static template = `
+  <h1>Hello, {{ message }}!</h1>
+  
+  <style>
+    h1 {
+      color: {{ color }};
+    }
+  </style>
+`
+```
+
+<br>
+
+**startConnect()** – this static method is executed at the very beginning of connecting the component to the document, before generating the HTML content of the component and calling the static *connected()* method, but after creating the component state object.
+
+In it, you can initialize the properties of the state object with the existing values:
+
+```js
+class WHello {
+  // it is performed at the beginning of connecting the component to the document
+  static startConnect() {
+    // initializing the property of a state object
+    this.message = 'Reacton'
+  }
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ message }}!</h1>`
+}
+```
+
+or get data from the server to initialize their. But in this case, the method must be asynchronous:
+
+```js
+class WHello {
+  // it is performed at the beginning of connecting the component to the document
+  static async startConnect() {
+    // initializing the state object property with data from a conditional server
+    this.message = await new Promise(ok => setTimeout(() => ok('Reacton'), 1000))
+  }
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ message }}!</h1>`
+}
+```
+
+*This is the only static method that can be asynchronous.*
+
+<br>
+
+**connected()** – this static method is executed at the very end of connecting the component to the document, after generating the HTML content of the component and calling the static *startConnect()* method.
+
+In it, you can add event handlers to the internal elements of the component:
+
+```js
+class WHello {
+  // initializing the property of a state object
+  message = 'Reacton'
+
+  // it is performed at the end of connecting the component to the document
+  static connected() {
+    // get an element using the sampling method
+    const elem = this.$('h1')
+
+    // add an event handler to the element
+    elem.addEventListener('click', e => console.log(e.target))
+  }
+
+  // return the HTML markup of the component
+  static template = `<h1>Hello, {{ message }}!</h1>`
+}
+```
+
+*This and all subsequent static methods are abbreviations of the [standard static](https://javascript.info/custom-elements) methods of the component.*
+
+<br>
+
+**disconnected()** – this static method is executed when a component is removed from a document.
+
+**adopted()** – this static method is executed when the component is moved to a new document.
+
+**changed()** – this static method is executed when one of the monitored attributes is changed.
+
+**attributes** – this static array contains the names of the monitored attributes, for example:
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello data-message="Reacton"></w-hello>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WHello {
+      // it is performed at the beginning of connecting the component to the document
+      static startConnect() {
+        // initializing the property of a state object
+        this.message = this.$data.message
+      }
+      
+      // it is performed at the end of connecting the component to the document
+      static connected() {
+        // get an element using the sampling method
+        const elem = this.$('h1')
+
+        // add an event handler to the element
+        elem.addEventListener('click', e => this.$data.message = 'Web components')
+      }
+
+      // it is executed when one of the monitored attributes is changed
+      static changed(name, oldValue, newValue) {
+        // if the new attribute value is not equal to the old value 
+        if (newValue !== oldValue) {
+          // change the value of a state object property
+          this.message = newValue
+        }
+      }
+
+      // contains the names of the monitored attributes
+      static attributes = ['data-message']
+
+      // return the HTML markup of the component
+      static template = `<h1>Hello, {{ message }}!</h1>`
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
+```
+
+<br>
+
+All static methods are called in the context of the [proxy](https://javascript.info/proxy) of the component state object. This means that if the required property is not found in the state object, then the search takes place in the component itself.
+
+In the example below, the **id** property does not exist in the component state object. Therefore, it is requested from the component itself:
+
+```html
+<body>
+  <!-- connect Hello component to the document -->
+  <w-hello id="hello"></w-hello>
+
+  <script src="rtn.global.js"></script>
+
+  <script>
+    class WHello {
+      // return the HTML markup of the component
+      static template = `<h1>Hello, the component with the ID {{ id }}!</h1>`
+    }
+
+    // pass the class of the Hello component to the Rtn function
+    Rtn(WHello)
+  </script>
+</body>
 ```
 
 <br>
